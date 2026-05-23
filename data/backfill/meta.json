@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "households": {
+    "latestSubmissionTime": null,
+    "count": 0,
+    "lastUpdated": null,
+    "files": []
+  },
+  "outside": {
+    "latestSubmissionTime": null,
+    "count": 0,
+    "lastUpdated": null,
+    "files": []
+  }
+}

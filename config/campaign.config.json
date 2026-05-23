@@ -1,0 +1,12 @@
+{
+  "campaign_name": "Campagne Polio",
+  "campaign_subtitle": "Monitorage indépendant • RDC • Mai-Juin 2026",
+  "campaign_start_date": "2026-05-23",
+  "campaign_end_date": "2026-06-10",
+  "households_form_id": 4498,
+  "outside_form_id": 4499,
+  "households_form_url": "https://api.whonghub.org/api/v1/data/4498.json",
+  "outside_form_url": "https://api.whonghub.org/api/v1/data/4499.json",
+  "include_pre_start_data": false,
+  "default_timezone": "Africa/Kinshasa"
+}

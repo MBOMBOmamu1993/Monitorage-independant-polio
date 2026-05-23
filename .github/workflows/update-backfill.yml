@@ -1,0 +1,86 @@
+name: Update ODK Backfill
+
+# Désactivé pour éviter de consommer les minutes GitHub Actions.
+# Exécution uniquement manuelle depuis l’onglet Actions.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Mode de backfill"
+        required: true
+        default: "update"
+        type: choice
+        options:
+          - update
+          - full
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-backfill
+  cancel-in-progress: false
+
+jobs:
+  update-backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline
+
+      - name: Run backfill (${{ github.event.inputs.mode || 'update' }})
+        run: |
+          if [ "${{ github.event.inputs.mode }}" = "full" ]; then
+            npm run backfill:build
+          else
+            npm run backfill:update
+          fi
+        env:
+          ODK_TOKEN: ${{ secrets.ODK_TOKEN }}
+          ODK_HOUSEHOLDS_FORM_URL: ${{ secrets.ODK_HOUSEHOLDS_FORM_URL || 'https://api.whonghub.org/api/v1/data/4498.json' }}
+          ODK_OUTSIDE_FORM_URL: ${{ secrets.ODK_OUTSIDE_FORM_URL || 'https://api.whonghub.org/api/v1/data/4499.json' }}
+          CAMPAIGN_START_DATE: "2026-05-23"
+          MONITORING_END_DATE: "2026-06-10"
+
+      - name: Commit and push backfill if changed
+        run: |
+          set -e
+          if git diff --quiet -- data/backfill/ && [ -z "$(git ls-files --others --exclude-standard data/backfill/)" ]; then
+            echo "No backfill changes to commit"
+            exit 0
+          fi
+
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add data/backfill/
+          git commit -m "data: mise à jour backfill ODK [skip ci]"
+
+          for attempt in 1 2 3 4; do
+            if git push origin HEAD:main; then
+              echo "Push réussi (tentative $attempt)"
+              exit 0
+            fi
+            if [ "$attempt" -eq 4 ]; then
+              echo "Push échoué après 4 tentatives — abandon"
+              exit 1
+            fi
+            wait_s=$((2 ** (attempt - 1) * 2))
+            echo "Push refusé (main a avancé) — pull --rebase + retry dans ${wait_s}s"
+            git fetch origin main
+            git rebase origin/main
+            sleep "$wait_s"
+          done

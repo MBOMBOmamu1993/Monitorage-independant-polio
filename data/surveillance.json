@@ -1,0 +1,21 @@
+{
+  "_meta": {
+    "source": "Bulletins épidémiologiques PEV-RDC (SIG-INSP)",
+    "comment": "À mettre à jour chaque semaine (ou brancher sur l'API DHIS2/WHO AFRO). Les valeurs doivent être alignées avec la cohorte monitorée.",
+    "periodStart": "2026-01-01",
+    "periodEnd": "2026-04-19",
+    "lastUpdated": "2026-04-19"
+  },
+  "provinces": [
+    { "province": "Haut-Katanga", "pfaCases": 7, "pfaWithPoliovirus": 0, "measlesSuspect": 140, "measlesConfirmed": 38 },
+    { "province": "Haut-Lomami", "pfaCases": 5, "pfaWithPoliovirus": 1, "measlesSuspect": 98, "measlesConfirmed": 22 },
+    { "province": "Kasaï", "pfaCases": 6, "pfaWithPoliovirus": 0, "measlesSuspect": 76, "measlesConfirmed": 18 },
+    { "province": "Kasaï-Central", "pfaCases": 3, "pfaWithPoliovirus": 0, "measlesSuspect": 64, "measlesConfirmed": 14 },
+    { "province": "Kasaï-Oriental", "pfaCases": 2, "pfaWithPoliovirus": 0, "measlesSuspect": 55, "measlesConfirmed": 9 },
+    { "province": "Lomami", "pfaCases": 4, "pfaWithPoliovirus": 0, "measlesSuspect": 60, "measlesConfirmed": 12 },
+    { "province": "Lualaba", "pfaCases": 2, "pfaWithPoliovirus": 0, "measlesSuspect": 40, "measlesConfirmed": 6 },
+    { "province": "Sankuru", "pfaCases": 3, "pfaWithPoliovirus": 0, "measlesSuspect": 52, "measlesConfirmed": 10 },
+    { "province": "Tanganyika", "pfaCases": 5, "pfaWithPoliovirus": 0, "measlesSuspect": 80, "measlesConfirmed": 15 },
+    { "province": "Tshopo", "pfaCases": 4, "pfaWithPoliovirus": 0, "measlesSuspect": 70, "measlesConfirmed": 13 }
+  ]
+}
