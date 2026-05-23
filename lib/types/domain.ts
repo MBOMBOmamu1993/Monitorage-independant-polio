@@ -150,9 +150,12 @@ export interface AggregatesOrgUnit {
   rrCoveragePct: number | null;
   polioCoverageHouseholdPct: number | null;
   polioCoverageOutsidePct: number | null;
+  /** Couverture Polio globale (ménage + hors-ménage) — cohérente avec le KPI. */
+  polioCoveragePct: number | null;
   coverageRiskRR: CoverageRiskClass;
   coverageRiskPolioHousehold: CoverageRiskClass;
   coverageRiskPolioOutside: CoverageRiskClass;
+  coverageRiskPolio: CoverageRiskClass;
 }
 
 export interface ReasonBreakdown {

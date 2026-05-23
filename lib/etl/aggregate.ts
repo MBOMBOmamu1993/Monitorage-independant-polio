@@ -47,9 +47,11 @@ function emptyAgg(u: OrgUnitRef): AggregatesOrgUnit {
     rrCoveragePct: null,
     polioCoverageHouseholdPct: null,
     polioCoverageOutsidePct: null,
+    polioCoveragePct: null,
     coverageRiskRR: "UNKNOWN",
     coverageRiskPolioHousehold: "UNKNOWN",
     coverageRiskPolioOutside: "UNKNOWN",
+    coverageRiskPolio: "UNKNOWN",
   };
 }
 
@@ -122,9 +124,14 @@ export function aggregateByLevel(
     agg.rrCoveragePct = pct(agg.rrVaccinated, agg.childrenRR);
     agg.polioCoverageHouseholdPct = pct(agg.polioVaccinatedHousehold, agg.childrenPolioHousehold);
     agg.polioCoverageOutsidePct = pct(agg.polioVaccinatedOutside, agg.childrenPolioOutside);
+    agg.polioCoveragePct = pct(
+      agg.polioVaccinatedHousehold + agg.polioVaccinatedOutside,
+      agg.childrenPolioHousehold + agg.childrenPolioOutside
+    );
     agg.coverageRiskRR = classifyCoverage(agg.rrCoveragePct);
     agg.coverageRiskPolioHousehold = classifyCoverage(agg.polioCoverageHouseholdPct);
     agg.coverageRiskPolioOutside = classifyCoverage(agg.polioCoverageOutsidePct);
+    agg.coverageRiskPolio = classifyCoverage(agg.polioCoveragePct);
   }
 
   return Array.from(bucket.values()).map((v) => v.agg);

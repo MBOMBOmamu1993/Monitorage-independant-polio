@@ -69,6 +69,46 @@ function parseStatutRR(raw: string | null): VaccinationResponse {
   return "Autre";
 }
 
+/**
+ * Canaux d'information : le niveau soumission expose un COMPTEUR par canal
+ * (SourceInfo_*_count = nb de ménages citant ce canal), pas une chaîne
+ * multi-sélection. On reconstruit donc le tableau infoChannels en répétant
+ * chaque libellé selon son compteur, pour que la répartition reflète le poids.
+ */
+const CHANNEL_COUNT_FIELDS: { label: string; keys: string[] }[] = [
+  { label: "Télévision", keys: ["SourceInfo_TV_count", "SourceInfo_TV"] },
+  { label: "Radio", keys: ["SourceInfo_Radio_count", "SourceInfo_Radio"] },
+  { label: "Centre d'info", keys: ["SourceInfo_Com_Infocentre_count", "SourceInfo_Com_Infocentre"] },
+  { label: "Crieur public", keys: ["SourceInfo_Town_Crier_count", "SourceInfo_Town_Crier"] },
+  { label: "Mobile/Mégaphone", keys: ["SourceInfo_Mob_VanPA_count", "SourceInfo_Mob_VanPA"] },
+  { label: "Agent de santé", keys: ["SourceInfo_Hworker_count", "SourceInfo_Hworker"] },
+  { label: "Volontaires", keys: ["SourceInfo_Volunteers_count", "SourceInfo_Volunteers"] },
+  { label: "Leader religieux", keys: ["SourceInfo_Religious_leader_count", "SourceInfo_Religious_leader"] },
+  { label: "Leader communautaire", keys: ["SourceInfo_Community_leader_count", "SourceInfo_Community_leader"] },
+  { label: "SMS/Réseaux sociaux", keys: ["SourceInfo_MobileMessaging_SocialMedia_count", "SourceInfo_MobileMessaging_SocialMedia"] },
+  { label: "Autres", keys: ["SourceInfo_Others_count", "SourceInfo_Others"] },
+];
+
+function buildInfoChannels(
+  r: Record<string, unknown>,
+  channelStringCandidates: string[]
+): string[] {
+  const out: string[] = [];
+  for (const ch of CHANNEL_COUNT_FIELDS) {
+    const n = pickNum(r, ch.keys);
+    if (n && n > 0) {
+      const reps = Math.min(Math.round(n), 100); // borne de sécurité anti-typo
+      for (let i = 0; i < reps; i++) out.push(ch.label);
+    }
+  }
+  // Fallback : formulaire exposant une chaîne multi-sélection (niveau repeat).
+  if (out.length === 0) {
+    const raw = pickStr(r, channelStringCandidates);
+    if (raw) for (const t of raw.split(/\s+/).filter(Boolean)) out.push(t.replace(/_/g, " "));
+  }
+  return out;
+}
+
 export interface ParsedSubmission {
   submission: CleanSubmission;
   children: ChildRecord[];
@@ -193,17 +233,19 @@ export function parseSubmission(
     }
   }
 
-  // Outlier guard Polio :
-  //  - Ménage : >10 enfants 0-59m dans un seul ménage = faute de saisie → record annulé
-  //  - Hors-ménage : >50 enfants évalués par visite = aberrant → record annulé
-  const maxU5 = context === "Household" ? 10 : 50;
+  // Outlier guard Polio : une soumission agrège plusieurs ménages
+  // (HH_count ≈ 10), donc Total_U5_Present est une SOMME (typiquement 15-40,
+  // jusqu'à ~200). On ne neutralise que les valeurs absurdes (typos massives),
+  // sans clipper les totaux légitimes — sinon la quasi-totalité des records
+  // serait annulée (couverture, non-vaccinés et cartes vidés).
+  const maxU5 = 1000;
   if (totU5 > maxU5) {
     totU5 = 0;
     vacU5 = 0;
   }
   vacU5 = Math.min(vacU5, totU5);
   const informedNum = pickNum(r, map.parentInformed);
-  const rawChannels = pickStr(r, map.infoChannels);
+  const infoChannels = buildInfoChannels(r, map.infoChannels);
 
   // Refus Polio : on prend le champ agrégé du formulaire
   const aggregateRefusals = pickNum(r, map.childNonCompliance);
@@ -225,7 +267,7 @@ export function parseSubmission(
     childHfTooFar: pickNum(r, map.childHfTooFar) ?? 0,
     childOthers: pickNum(r, map.childOthers) ?? 0,
     parentInformed: informedNum === null ? null : informedNum >= 1,
-    infoChannels: rawChannels ? rawChannels.split(/\s+/).filter(Boolean) : [],
+    infoChannels,
     // Détail Refus
     refusalReligion: pickNum(r, map.refusalReligion) ?? (children.filter(c => c.rrReceived === "Refus" && (c.refusalReasonCode === "9" || c.refusalReasonCode === "1")).length),
     refusalTradition: pickNum(r, map.refusalTradition) ?? 0,
