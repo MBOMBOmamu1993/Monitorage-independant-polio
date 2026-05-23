@@ -4,7 +4,7 @@
 
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import type { CleanSubmission, CompletenessDayRow, PerformanceRow } from "@/lib/types/domain";
-import { dailyTargetFor, MonitorProfile, GEOGRAPHIC_COMPLETENESS } from "@/config/completeness-rules";
+import { expectedFormsPerDay, MonitorProfile, GEOGRAPHIC_COMPLETENESS } from "@/config/completeness-rules";
 
 function dayStr(d: string | null): string | null {
   if (!d) return null;
@@ -84,30 +84,9 @@ export function performanceByMonitor(
     r.averageOutsidePerDay = r.submissionsOutside / Math.max(1, span);
 
     const profile = (r.profile as MonitorProfile) ?? "Other";
-    // Cibles type-aware : InProcess vs EndProcess ont des objectifs différents
-    // InProcess : IM = 120 ménages + 2 HM/jour ; Autres = 20 + 2
-    // EndProcess : IM = 60 ménages + 3 HM/jour ; Autres = 10 + 2
-    let dtHH: number | null = null;
-    let dtOH: number | null = null;
-    if (monitoringType === "EndProcess") {
-      // EndProcess : cibles réduites (fin de campagne)
-      if (profile === "Indp_Monitor") {
-        dtHH = 60; dtOH = 3;
-      } else {
-        dtHH = 10; dtOH = 2;
-      }
-    } else if (monitoringType === "InProcess") {
-      // InProcess : cibles normales
-      if (profile === "Indp_Monitor") {
-        dtHH = 120; dtOH = 2;
-      } else {
-        dtHH = 20; dtOH = 2;
-      }
-    } else {
-      // "all" : on utilise les cibles par défaut du profil
-      dtHH = dailyTargetFor(profile, "Household");
-      dtOH = dailyTargetFor(profile, "Outside");
-    }
+    // Cibles journalières en FORMULAIRES (1 form. ménage = 10 ménages),
+    // cohérentes avec le comptage des soumissions. Voir expectedFormsPerDay.
+    const { household: dtHH, outside: dtOH } = expectedFormsPerDay(profile, monitoringType);
     r.expectedHouseholdPerDay = dtHH;
     r.expectedOutsidePerDay = dtOH;
     r.expectedPerDay = (dtHH ?? 0) + (dtOH ?? 0) || null;

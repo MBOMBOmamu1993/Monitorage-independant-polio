@@ -1,14 +1,20 @@
 /**
  * Règles de complétude et performance des soumissionnaires.
  *
- * Cibles journalières (validées par le coordonnateur, avril 2026) :
+ * IMPORTANT — unité de comptage : les soumissions sont comptées en
+ * FORMULAIRES (1 formulaire ménage = 10 ménages). Toutes les cibles
+ * ci-dessous sont donc exprimées en formulaires/jour, pas en ménages.
  *
- *  - Moniteur Indépendant (Indp_Monitor)
- *      ménages      : 30 ménages/jour (≈ 120 sur 4 jours de campagne)
- *      hors-ménage  :  2 points HM/jour
- *  - Autres profils (team_sup, District_sup, Other)
- *      ménages      : 10 ménages/jour (≈ 40 sur 4 jours)
- *      hors-ménage  :  2 points HM/jour
+ * Cibles journalières (en formulaires) :
+ *
+ *  - Moniteur Indépendant (Indp_Monitor) — travaille 4 jours
+ *    (2 jours in process + 2 jours end process)
+ *      in process  : 3 form. ménages/jour + 2 form. hors-ménages/jour
+ *      end process : 3 form. ménages/jour + 2 form. hors-ménages/jour
+ *  - Autres profils (team_sup, District_sup, Other) — travaillent
+ *    uniquement en in process, 2 jours
+ *      in process  : 3 form. ménages/jour + 2 form. hors-ménages/jour
+ *      end process : aucune cible (ils ne travaillent pas en end process)
  *
  * Règle de COMPLÉTUDE géographique par jour :
  *  Pour chaque (province | antenne | ZS) et chaque jour, l'entité est
@@ -29,15 +35,44 @@ export interface DailyExpectation {
 }
 
 export const DAILY_EXPECTATIONS: DailyExpectation[] = [
-  { profile: "Indp_Monitor", context: "Household", dailyTarget: 30, label: "Moniteur indépendant — ménages" },
-  { profile: "Indp_Monitor", context: "Outside",   dailyTarget: 2,  label: "Moniteur indépendant — hors-ménages" },
-  { profile: "team_sup",     context: "Household", dailyTarget: 10, label: "Superviseur équipe — ménages" },
-  { profile: "team_sup",     context: "Outside",   dailyTarget: 2,  label: "Superviseur équipe — hors-ménages" },
-  { profile: "District_sup", context: "Household", dailyTarget: 10, label: "Superviseur district — ménages" },
-  { profile: "District_sup", context: "Outside",   dailyTarget: 2,  label: "Superviseur district — hors-ménages" },
-  { profile: "Other",        context: "Household", dailyTarget: 10, label: "Autre — ménages" },
-  { profile: "Other",        context: "Outside",   dailyTarget: 2,  label: "Autre — hors-ménages" },
+  { profile: "Indp_Monitor", context: "Household", dailyTarget: 3, label: "Moniteur indépendant — formulaires ménages" },
+  { profile: "Indp_Monitor", context: "Outside",   dailyTarget: 2, label: "Moniteur indépendant — formulaires hors-ménages" },
+  { profile: "team_sup",     context: "Household", dailyTarget: 3, label: "Superviseur équipe — formulaires ménages" },
+  { profile: "team_sup",     context: "Outside",   dailyTarget: 2, label: "Superviseur équipe — formulaires hors-ménages" },
+  { profile: "District_sup", context: "Household", dailyTarget: 3, label: "Superviseur district — formulaires ménages" },
+  { profile: "District_sup", context: "Outside",   dailyTarget: 2, label: "Superviseur district — formulaires hors-ménages" },
+  { profile: "Other",        context: "Household", dailyTarget: 3, label: "Autre — formulaires ménages" },
+  { profile: "Other",        context: "Outside",   dailyTarget: 2, label: "Autre — formulaires hors-ménages" },
 ];
+
+export type MonitoringTypeFilter = "all" | "InProcess" | "EndProcess";
+
+export interface ExpectedTargets {
+  /** Formulaires ménages attendus/jour (null = pas de cible). */
+  household: number | null;
+  /** Formulaires hors-ménages attendus/jour (null = pas de cible). */
+  outside: number | null;
+}
+
+/**
+ * Cible journalière en FORMULAIRES selon le profil et le type de monitorage.
+ *
+ *  - In process (ou « all ») : tous les profils visent 3 form. ménages
+ *    + 2 form. hors-ménages par jour.
+ *  - End process : seuls les moniteurs indépendants travaillent
+ *    (3 form. ménages + 2 form. hors-ménages/jour). Les autres profils
+ *    n'ont aucune cible en end process → complétude non calculée.
+ */
+export function expectedFormsPerDay(
+  profile: MonitorProfile,
+  monitoringType: MonitoringTypeFilter,
+): ExpectedTargets {
+  const isIndependent = profile === "Indp_Monitor";
+  if (monitoringType === "EndProcess" && !isIndependent) {
+    return { household: null, outside: null };
+  }
+  return { household: 3, outside: 2 };
+}
 
 /**
  * Règle de complétude géographique : combien de soumissions minimales
