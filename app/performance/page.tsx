@@ -100,8 +100,8 @@ export default function PerformancePage() {
         title="Performance des moniteurs"
         subtitle={
           filters.monitoringType === "EndProcess"
-            ? "Cibles : IM 60 ménages + 3 HM /jour (EndProcess) · Autres 10 ménages + 2 HM /jour"
-            : "Cibles : IM 120 ménages + 2 HM /jour (InProcess) · Autres 20 ménages + 2 HM /jour"
+            ? "Cibles (end process) : Moniteur indépendant 3 form. ménages + 2 form. HM /jour · Autres profils : ne travaillent pas en end process"
+            : "Cibles (in process) : 3 form. ménages + 2 form. HM /jour (tous profils) · 1 formulaire = 10 ménages"
         }
         right={
           <select
@@ -192,8 +192,8 @@ export default function PerformancePage() {
           title="Moyenne journalière Ménage vs Hors-ménage par profil"
           subtitle={
             filters.monitoringType === "EndProcess"
-              ? "Cibles IM = 60/3 (EndProcess) · Autres = 10/2"
-              : "Cibles IM = 120/2 (InProcess) · Autres = 20/2"
+              ? "Cibles (end process) : IM = 3 ménages / 2 HM · Autres = aucune (in process uniquement)"
+              : "Cibles (in process) : 3 form. ménages / 2 form. HM par jour (tous profils)"
           }
         />
         {avgByProfile.length ? (

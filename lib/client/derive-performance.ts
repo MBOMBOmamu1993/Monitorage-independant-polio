@@ -12,7 +12,7 @@
 import type { FactRow, PerformanceRow } from "@/lib/types/domain";
 import type { FiltersState } from "@/lib/state/filters";
 import { differenceInCalendarDays, parseISO } from "date-fns";
-import { dailyTargetFor, type MonitorProfile } from "@/config/completeness-rules";
+import { expectedFormsPerDay, type MonitorProfile } from "@/config/completeness-rules";
 
 function matchesForPerformance(r: FactRow, f: FiltersState): boolean {
   if (f.minDate && r.d < f.minDate) return false;
@@ -90,35 +90,13 @@ export function derivePerformance(
         : 1;
     const profile = (b.profile as MonitorProfile) ?? "Other";
 
-    // Règles de charge horaire par profil et type de monitorage
-    // Moniteur Indépendant :
-    //   - InProcess / All : 120 ménages/jour + 2 HM/jour
-    //   - EndProcess      :  60 ménages/jour + 3 HM/jour
-    // Autres profils (team_sup, District_sup, Other) :
-    //   - InProcess / All :  20 ménages/jour + 2 HM/jour
-    //   - EndProcess      :  10 ménages/jour + 2 HM/jour
-    const isIndependentMonitor = profile === "Indp_Monitor";
-    const isEndProcess = filters.monitoringType === "EndProcess";
-
-    let dtHH: number | null;
-    let dtOH: number | null;
-
-    if (isIndependentMonitor && isEndProcess) {
-      dtHH = 60;
-      dtOH = 3;
-    } else if (isIndependentMonitor) {
-      // InProcess ou "all"
-      dtHH = 120;
-      dtOH = 2;
-    } else if (isEndProcess) {
-      // Autres profils en EndProcess
-      dtHH = 10;
-      dtOH = 2;
-    } else {
-      // Autres profils en InProcess ou "all"
-      dtHH = 20;
-      dtOH = 2;
-    }
+    // Cibles journalières en FORMULAIRES (1 form. ménage = 10 ménages),
+    // cohérentes avec le comptage des soumissions (b.hh / b.oh comptent
+    // des formulaires). Voir expectedFormsPerDay pour les règles.
+    const { household: dtHH, outside: dtOH } = expectedFormsPerDay(
+      profile,
+      filters.monitoringType,
+    );
 
     const expectedPerDay = (dtHH ?? 0) + (dtOH ?? 0) || null;
 
