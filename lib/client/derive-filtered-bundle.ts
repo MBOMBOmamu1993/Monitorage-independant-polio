@@ -351,8 +351,8 @@ export function deriveFilteredBundle(bundle: AnalyticsBundle, f: FiltersState): 
             submissions: 0, childrenRR: 0, childrenPolioHousehold: 0, childrenPolioOutside: 0,
             rrVaccinated: 0, rrNotVaccinated: 0, polioVaccinatedHousehold: 0, polioNotVaccinatedHousehold: 0,
             polioVaccinatedOutside: 0, polioNotVaccinatedOutside: 0, refusals: 0, absences: 0,
-            numberAFP: 0, numberMeasles: 0, rrCoveragePct: null, polioCoverageHouseholdPct: null, polioCoverageOutsidePct: null,
-            coverageRiskRR: "UNKNOWN", coverageRiskPolioHousehold: "UNKNOWN", coverageRiskPolioOutside: "UNKNOWN",
+            numberAFP: 0, numberMeasles: 0, rrCoveragePct: null, polioCoverageHouseholdPct: null, polioCoverageOutsidePct: null, polioCoveragePct: null,
+            coverageRiskRR: "UNKNOWN", coverageRiskPolioHousehold: "UNKNOWN", coverageRiskPolioOutside: "UNKNOWN", coverageRiskPolio: "UNKNOWN",
           };
           aggMaps[lvl].set(k, a);
         }
@@ -455,9 +455,12 @@ export function deriveFilteredBundle(bundle: AnalyticsBundle, f: FiltersState): 
         a.rrCoveragePct = a.childrenRR > 0 ? (a.rrVaccinated * 100) / a.childrenRR : null;
         a.polioCoverageHouseholdPct = a.childrenPolioHousehold > 0 ? (a.polioVaccinatedHousehold * 100) / a.childrenPolioHousehold : null;
         a.polioCoverageOutsidePct = a.childrenPolioOutside > 0 ? (a.polioVaccinatedOutside * 100) / a.childrenPolioOutside : null;
+        const polioEvalTot = a.childrenPolioHousehold + a.childrenPolioOutside;
+        a.polioCoveragePct = polioEvalTot > 0 ? ((a.polioVaccinatedHousehold + a.polioVaccinatedOutside) * 100) / polioEvalTot : null;
         a.coverageRiskRR = riskFromCoverage(a.rrCoveragePct);
         a.coverageRiskPolioHousehold = riskFromCoverage(a.polioCoverageHouseholdPct);
         a.coverageRiskPolioOutside = riskFromCoverage(a.polioCoverageOutsidePct);
+        a.coverageRiskPolio = riskFromCoverage(a.polioCoveragePct);
         return a;
       });
       const key = `by${lvl.charAt(0).toUpperCase()}${lvl.slice(1)}` as keyof typeof finalAggs;

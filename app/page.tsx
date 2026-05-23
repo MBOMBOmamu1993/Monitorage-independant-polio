@@ -44,8 +44,8 @@ export default function OverviewPage() {
   const polioRefusUnit = data.precomputed.reasonsByLevel[level].polioRefusals;
 
   const unitsPolio = aggs
-    .filter((a) => a.polioCoverageHouseholdPct !== null)
-    .map((a) => ({ label: labelOf(a, level), value: a.polioCoverageHouseholdPct ?? 0 }))
+    .filter((a) => a.polioCoveragePct !== null)
+    .map((a) => ({ label: labelOf(a, level), value: a.polioCoveragePct ?? 0 }))
     .sort((a, b) => a.value - b.value)
     .slice(0, 20);
 
