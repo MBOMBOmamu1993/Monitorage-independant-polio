@@ -4,7 +4,10 @@
  */
 
 function req(name: string, fallback?: string): string {
-  const v = process.env[name] ?? fallback;
+  const raw = process.env[name] ?? fallback;
+  // Trim pour neutraliser les espaces/tabulations parasites collés en config
+  // (ex. CAMPAIGN_START_DATE="\t2026-05-23" rejeté par ODK).
+  const v = raw?.trim();
   if (!v) {
     // On préfère un throw clair au runtime qu'un comportement silencieux.
     throw new Error(`[env] variable ${name} manquante — vérifier .env.local`);
@@ -13,7 +16,7 @@ function req(name: string, fallback?: string): string {
 }
 
 function opt(name: string, fallback = ""): string {
-  return process.env[name] ?? fallback;
+  return (process.env[name] ?? fallback).trim();
 }
 
 export const ENV = {

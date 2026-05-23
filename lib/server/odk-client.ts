@@ -243,7 +243,9 @@ export async function fetchFormSubmissions(
 
   // 2. Déterminer le timestamp de départ pour le fetch incrémentiel
   const hasBackfill = backfillSubs.length > 0 && backfillMeta.latestSubmissionTime !== null;
-  const sinceTs = backfillMeta.latestSubmissionTime ?? ENV.CAMPAIGN_START_DATE;
+  // Sanitize : ODK rejette toute valeur de date contenant des espaces/tabulations
+  // (JSON.stringify échappe un \t en "\\t", produisant un filtre invalide).
+  const sinceTs = (backfillMeta.latestSubmissionTime ?? ENV.CAMPAIGN_START_DATE).trim();
 
   // 3. Query ODK : uniquement les nouvelles soumissions depuis sinceTs
   const query = JSON.stringify({
