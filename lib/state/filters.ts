@@ -1,7 +1,6 @@
 "use client";
 
 import { create } from "zustand";
-import { DEFAULT_DASHBOARD_PROVINCE } from "@/config/provinces";
 
 export type MonitoringContextFilter = "all" | "households" | "outside";
 
@@ -37,7 +36,7 @@ export interface FiltersActions {
 }
 
 const INITIAL: FiltersState = {
-  province: DEFAULT_DASHBOARD_PROVINCE,
+  province: null,
   antenne: null,
   zs: null,
   as: null,
@@ -55,7 +54,7 @@ export const useFilters = create<FiltersState & FiltersActions>((set) => ({
   ...INITIAL,
   setProvince: (v) =>
     set(() => ({
-      province: v ?? DEFAULT_DASHBOARD_PROVINCE,
+      province: v,
       antenne: null,
       zs: null,
       as: null,
@@ -78,6 +77,7 @@ export const useFilters = create<FiltersState & FiltersActions>((set) => ({
 export function filtersToQuery(f: FiltersState): string {
   const p = new URLSearchParams();
   p.set("restrict", f.restrictToCampaign ? "1" : "0");
-  p.set("province", f.province || DEFAULT_DASHBOARD_PROVINCE);
+  // Province absente → la vue "Tous" agrège toutes les provinces de campagne.
+  if (f.province) p.set("province", f.province);
   return `?${p.toString()}`;
 }
