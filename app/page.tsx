@@ -72,7 +72,7 @@ export default function OverviewPage() {
       )}
       <PageHeader
         title="Vue d'ensemble"
-        subtitle={`Monitorage 23 mai → 10 juin 2026 · Niveau d'agrégation : ${levelLabel}`}
+        subtitle={`Monitorage 22 mai → 10 juin 2026 · Niveau d'agrégation : ${levelLabel}`}
       />
 
       <Grid cols={4} className="mb-4">
