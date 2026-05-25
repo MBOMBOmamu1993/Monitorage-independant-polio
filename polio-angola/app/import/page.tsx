@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useApp } from "@/lib/store";
 import { parseMasque } from "@/lib/parse-masque";
 import { totals } from "@/lib/analytics";
 import { fmtInt, fmtPct } from "@/lib/format";
+import { fetchNational, pushImport, type EntityInfo } from "@/lib/national";
 
 export default function ImportPage() {
   const { data, setData, clearData } = useApp();
@@ -14,6 +15,14 @@ export default function ImportPage() {
   const [toast, setToast] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [sync, setSync] = useState<"idle" | "syncing" | "ok" | "local">("idle");
+  const [entities, setEntities] = useState<EntityInfo[] | null>(null);
+
+  async function refreshEntities() {
+    const nat = await fetchNational();
+    setEntities(nat ? nat.entities : null);
+  }
+  useEffect(() => { void refreshEntities(); }, []);
 
   async function handleFile(file: File) {
     setBusy(true);
@@ -21,8 +30,13 @@ export default function ImportPage() {
     try {
       const buf = await file.arrayBuffer();
       const parsed = parseMasque(buf, file.name);
-      setData(parsed); // remplace l'ancienne version par la nouvelle
+      setData(parsed); // remplace l'ancienne version par la nouvelle (local)
       setToast({ kind: "ok", msg: "Masque de saisie importé avec succès" });
+      // Synchronisation vers la compilation nationale (best-effort).
+      setSync("syncing");
+      const r = await pushImport(parsed);
+      setSync(r.ok ? "ok" : "local");
+      if (r.ok) void refreshEntities();
     } catch (e) {
       setToast({ kind: "err", msg: e instanceof Error ? e.message : "Échec de l'import du fichier." });
     } finally {
@@ -115,7 +129,8 @@ export default function ImportPage() {
                 {new Date(data.meta.importedAt).toLocaleString("fr-FR")}
               </span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              <SyncBadge sync={sync} />
               <Link href="/rapport" className="rounded-lg bg-oms-500 px-4 py-2 text-xs font-semibold text-white hover:bg-oms-600">
                 📊 Aller au rapport
               </Link>
@@ -138,7 +153,7 @@ export default function ImportPage() {
           </div>
 
           <div className="rounded-xl border border-surface-200 bg-white p-4">
-            <h3 className="mb-2 text-sm font-semibold text-oms-800">Couverture nationale détectée</h3>
+            <h3 className="mb-2 text-sm font-semibold text-oms-800">Zones de Santé de votre import</h3>
             <div className="flex flex-wrap gap-2 text-xs">
               {data.meta.zones.map((z) => (
                 <span key={z} className="rounded-full bg-oms-50 px-3 py-1 text-oms-700">{z}</span>
@@ -147,7 +162,72 @@ export default function ImportPage() {
           </div>
         </section>
       )}
+
+      {/* Compilation nationale (toutes les entités déjà importées) */}
+      <NationalPanel entities={entities} />
     </div>
+  );
+}
+
+function SyncBadge({ sync }: { sync: "idle" | "syncing" | "ok" | "local" }) {
+  if (sync === "syncing")
+    return <span className="rounded-lg bg-oms-50 px-3 py-2 text-xs font-medium text-oms-700">⏳ Synchronisation…</span>;
+  if (sync === "ok")
+    return <span className="rounded-lg bg-good-50 px-3 py-2 text-xs font-medium text-good-600">🌍 Synchronisé au niveau national</span>;
+  if (sync === "local")
+    return <span className="rounded-lg bg-warn-50 px-3 py-2 text-xs font-medium text-warn-600" title="Activez le stockage Vercel KV pour la compilation nationale">💾 Enregistré localement</span>;
+  return null;
+}
+
+function NationalPanel({ entities }: { entities: EntityInfo[] | null }) {
+  if (entities === null) {
+    return (
+      <section className="rounded-xl border border-warn-100 bg-warn-50 p-4 text-sm text-warn-600">
+        <strong>Compilation nationale non activée.</strong> Pour que les 5 provinces alimentent une vue pays
+        commune, activez le stockage partagé (Vercel KV) — voir le README. En attendant, chaque import reste
+        disponible localement.
+      </section>
+    );
+  }
+  if (entities.length === 0) {
+    return (
+      <section className="rounded-xl border border-surface-200 bg-white p-4 text-sm text-surface-500">
+        🌍 Compilation nationale activée — aucune entité importée pour le moment.
+      </section>
+    );
+  }
+  const provinces = Array.from(new Set(entities.map((e) => e.province)));
+  return (
+    <section className="rounded-2xl border border-oms-100 bg-white p-4 shadow-card">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-sm font-bold text-oms-800">🌍 Compilation nationale — entités déjà importées</h2>
+        <span className="text-xs text-surface-500">{provinces.length} province(s) · {entities.length} ZS</span>
+      </div>
+      <div className="max-h-72 overflow-auto rounded-lg border border-surface-200">
+        <table className="w-full text-left text-xs">
+          <thead className="sticky top-0 bg-surface-100 text-surface-500">
+            <tr>
+              <th className="px-3 py-2 font-semibold">Province</th>
+              <th className="px-3 py-2 font-semibold">Antenne</th>
+              <th className="px-3 py-2 font-semibold">Zone de Santé</th>
+              <th className="px-3 py-2 font-semibold">Aires</th>
+              <th className="px-3 py-2 font-semibold">Dernière mise à jour</th>
+            </tr>
+          </thead>
+          <tbody>
+            {entities.map((e, i) => (
+              <tr key={`${e.province}-${e.antenne}-${e.zs}-${i}`} className="border-t border-surface-100">
+                <td className="px-3 py-1.5 font-medium text-oms-800">{e.province}</td>
+                <td className="px-3 py-1.5 text-surface-700">{e.antenne}</td>
+                <td className="px-3 py-1.5 text-surface-700">{e.zs}</td>
+                <td className="px-3 py-1.5 text-surface-700">{e.nbAires}</td>
+                <td className="px-3 py-1.5 text-surface-500">{new Date(e.importedAt).toLocaleString("fr-FR")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useApp } from "@/lib/store";
 import {
@@ -12,6 +12,8 @@ import {
   totals,
 } from "@/lib/analytics";
 import { fmtInt, fmtPct } from "@/lib/format";
+import { fetchNational } from "@/lib/national";
+import type { MasqueData } from "@/lib/parse-masque";
 import type { ProblemeRow, ReportData, UnitValue } from "@/lib/export-report-pptx";
 
 const DEFAULT_PROBLEMES: ProblemeRow[] = [
@@ -42,10 +44,29 @@ const DEFAULT_PROBLEMES: ProblemeRow[] = [
 ];
 
 export default function RapportPage() {
-  const { data, filters, setFilter, resetFilters } = useApp();
+  const { data: localData, filters, setFilter, resetFilters } = useApp();
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [problemes, setProblemes] = useState<ProblemeRow[]>(DEFAULT_PROBLEMES);
+  const [nationalData, setNationalData] = useState<MasqueData | null>(null);
+  const [nationalLoaded, setNationalLoaded] = useState(false);
+  const [source, setSource] = useState<"local" | "national">("local");
+
+  useEffect(() => {
+    let alive = true;
+    fetchNational().then((nat) => {
+      if (!alive) return;
+      setNationalLoaded(true);
+      if (nat && nat.data.records.length > 0) {
+        setNationalData(nat.data);
+        // Par défaut, privilégier la compilation nationale si disponible.
+        setSource("national");
+      }
+    });
+    return () => { alive = false; };
+  }, []);
+
+  const data = source === "national" && nationalData ? nationalData : localData;
 
   const opts = useMemo(() => (data ? cascadeOptions(data, filters) : null), [data, filters]);
   const filtered = useMemo(() => (data ? applyFilters(data, filters) : []), [data, filters]);
@@ -126,12 +147,44 @@ export default function RapportPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-oms-800">Télécharger le rapport</h1>
-        <p className="text-sm text-surface-500">
-          {scopeLabel(filters)} · {data.meta.periode || "Période de la campagne"} · agrégation par {drill.label}
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-oms-800">Télécharger le rapport</h1>
+          <p className="text-sm text-surface-500">
+            {scopeLabel(filters)} · {data.meta.periode || "Période de la campagne"} · agrégation par {drill.label}
+          </p>
+        </div>
+        {/* Source des données : import local vs compilation nationale */}
+        <div className="inline-flex rounded-xl border border-surface-200 bg-white p-1 shadow-card">
+          <button
+            onClick={() => { setSource("local"); resetFilters(); }}
+            disabled={!localData}
+            className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+              source === "local" ? "bg-oms-500 text-white" : "text-oms-700 hover:bg-oms-50 disabled:opacity-40"
+            }`}
+          >
+            💾 Mon import
+          </button>
+          <button
+            onClick={() => { setSource("national"); resetFilters(); }}
+            disabled={!nationalData}
+            title={!nationalLoaded ? "Chargement…" : !nationalData ? "Compilation nationale non disponible" : ""}
+            className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+              source === "national" ? "bg-oms-500 text-white" : "text-oms-700 hover:bg-oms-50 disabled:opacity-40"
+            }`}
+          >
+            🌍 Compilation nationale
+          </button>
+        </div>
       </div>
+
+      {source === "national" && nationalData && (
+        <div className="rounded-xl border border-oms-100 bg-oms-50 px-4 py-2.5 text-xs text-oms-700">
+          🌍 Rapport <strong>niveau pays</strong> — {nationalData.meta.zones.length} ZS consolidées sur {" "}
+          {Array.from(new Set(nationalData.records.map((r) => r.province))).length} province(s). Sélectionnez une
+          province pour cibler, ou laissez « Tous » pour télécharger la situation de toutes les provinces à la fois.
+        </div>
+      )}
 
       {/* Filtres */}
       <section className="rounded-2xl border border-surface-200 bg-white p-4 shadow-card">

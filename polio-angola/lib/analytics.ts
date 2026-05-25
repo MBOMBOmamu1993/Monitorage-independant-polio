@@ -55,7 +55,8 @@ export function resolveDrillLevel(f: Filters): { level: DrillLevel; label: strin
   if (f.zs) return { level: "as", label: "Aire de Santé" };
   if (f.antenne) return { level: "zs", label: "Zone de Santé" };
   if (f.province) return { level: "zs", label: "Zone de Santé" };
-  return { level: "zs", label: "Zone de Santé" };
+  // Niveau national (aucune province sélectionnée) → agrégation par province.
+  return { level: "province", label: "Province" };
 }
 
 export function scopeLabel(f: Filters): string {
@@ -63,7 +64,7 @@ export function scopeLabel(f: Filters): string {
   if (f.zs) return `Zone de Santé : ${f.zs}`;
   if (f.antenne) return `Antenne : ${f.antenne}`;
   if (f.province) return `Province : ${f.province}`;
-  return "Toute la zone importée";
+  return "Niveau national — toutes les provinces";
 }
 
 export function scopeName(f: Filters, data: MasqueData): string {
