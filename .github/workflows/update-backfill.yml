@@ -1,9 +1,18 @@
 name: Update ODK Backfill
 
-# Désactivé pour éviter de consommer les minutes GitHub Actions.
-# Exécution uniquement manuelle depuis l’onglet Actions.
+# Rafraîchit les données de production toutes les 5 minutes :
+#   1. backfill incrémentiel ODK (uniquement les nouvelles soumissions ;
+#      au premier run, l'état vide déclenche un pull complet auto).
+#   2. reconstruction des bundles analytics par province.
+#   3. commit unique de data/backfill/ + data/analytics/ sur main → redeploy Vercel.
+#
+# ⚠️ */5 est la cadence minimale autorisée par GitHub Actions et consomme
+# beaucoup de minutes (288 runs/jour). Réduire le cron si le quota est atteint.
+# Déclenchement manuel possible depuis l'onglet Actions (mode full pour reseed).
 
 on:
+  schedule:
+    - cron: "*/5 * * * *"
   workflow_dispatch:
     inputs:
       mode:
@@ -25,7 +34,7 @@ concurrency:
 jobs:
   update-backfill:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
@@ -56,18 +65,28 @@ jobs:
           CAMPAIGN_START_DATE: "2026-05-23"
           MONITORING_END_DATE: "2026-06-10"
 
-      - name: Commit and push backfill if changed
+      - name: Rebuild analytics bundles
+        run: npm run build:analytics
+        env:
+          ODK_TOKEN: ${{ secrets.ODK_TOKEN }}
+          ODK_HOUSEHOLDS_FORM_URL: ${{ secrets.ODK_HOUSEHOLDS_FORM_URL || 'https://api.whonghub.org/api/v1/data/4498.json' }}
+          ODK_OUTSIDE_FORM_URL: ${{ secrets.ODK_OUTSIDE_FORM_URL || 'https://api.whonghub.org/api/v1/data/4499.json' }}
+          CAMPAIGN_START_DATE: "2026-05-23"
+          MONITORING_END_DATE: "2026-06-10"
+
+      - name: Commit and push data if changed
         run: |
           set -e
-          if git diff --quiet -- data/backfill/ && [ -z "$(git ls-files --others --exclude-standard data/backfill/)" ]; then
-            echo "No backfill changes to commit"
+          if git diff --quiet -- data/backfill/ data/analytics/ \
+            && [ -z "$(git ls-files --others --exclude-standard data/backfill/ data/analytics/)" ]; then
+            echo "No data changes to commit"
             exit 0
           fi
 
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
-          git add data/backfill/
-          git commit -m "data: mise à jour backfill ODK [skip ci]"
+          git add data/backfill/ data/analytics/
+          git commit -m "data: rafraîchissement backfill + analytics ODK [skip ci]"
 
           for attempt in 1 2 3 4; do
             if git push origin HEAD:main; then
