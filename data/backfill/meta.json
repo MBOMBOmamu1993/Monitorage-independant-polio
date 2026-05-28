@@ -1,9 +1,9 @@
 {
   "version": 1,
   "households": {
-    "latestSubmissionTime": "2026-05-28T13:36:20.115439+00:00",
-    "count": 8572,
-    "lastUpdated": "2026-05-28T13:39:17.976Z",
+    "latestSubmissionTime": "2026-05-28T17:06:15.118116+00:00",
+    "count": 9052,
+    "lastUpdated": "2026-05-28T17:06:48.347Z",
     "files": [
       "2026-05-23.json",
       "2026-05-24.json",
@@ -14,9 +14,9 @@
     ]
   },
   "outside": {
-    "latestSubmissionTime": "2026-05-28T13:45:48.909855+00:00",
-    "count": 4698,
-    "lastUpdated": "2026-05-28T13:46:19.146Z",
+    "latestSubmissionTime": "2026-05-28T17:07:41.360341+00:00",
+    "count": 5019,
+    "lastUpdated": "2026-05-28T17:07:54.480Z",
     "files": [
       "2026-05-23.json",
       "2026-05-24.json",
