@@ -1,9 +1,12 @@
 name: Update Analytics Bundles
 
-# Désactivé pour éviter de consommer les minutes GitHub Actions.
-# Exécution uniquement manuelle depuis l’onglet Actions.
+# Mise à jour automatique toutes les 2 heures, décalée de 30 min après le
+# backfill afin de reconstruire les bundles sur des données fraîches.
+# Ajuster/désactiver le cron si besoin. Déclenchement manuel toujours possible.
 
 on:
+  schedule:
+    - cron: "30 */2 * * *"
   workflow_dispatch:
 
 permissions:
