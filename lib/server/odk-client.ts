@@ -28,7 +28,12 @@ type CacheEntry<T> = { at: number; value: T };
 const memCache = new Map<string, CacheEntry<unknown>>();
 
 const PAGE_SIZE = 2000;
-const PER_REQUEST_TIMEOUT_MS = 10_000;
+// L'API ODK (whonghub) trie/filtre côté serveur et peut mettre plusieurs
+// dizaines de secondes à renvoyer la première page quand aucun backfill n'est
+// committé (cold start = pull complet de la campagne). 10s était trop court et
+// provoquait des 502 systématiques. On reste sous le budget route (150s) et la
+// limite de fonction Vercel Pro (300s).
+const PER_REQUEST_TIMEOUT_MS = 60_000;
 const MAX_ATTEMPTS = 2;
 // Nombre max de soumissions à récupérer en mode incrémentiel (= nouvelles depuis backfill).
 // Dimensionné pour absorber jusqu'à 5h de croissance à pic (~10k/h par formulaire)
