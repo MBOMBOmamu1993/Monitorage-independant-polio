@@ -28,7 +28,11 @@ type CacheEntry<T> = { at: number; value: T };
 const memCache = new Map<string, CacheEntry<unknown>>();
 
 const PAGE_SIZE = 2000;
-const PER_REQUEST_TIMEOUT_MS = 10_000;
+// L'API ODK (api.whonghub.org) répond lentement sur les requêtes filtrées +
+// triées : 10s ne suffisaient pas et chaque page expirait → /api/analytics 502
+// → dashboard vide. On laisse 30s par requête. Avec MAX_ATTEMPTS=2 cela fait
+// jusqu'à 60s par page, absorbé par le budget route (150s) et maxDuration (300s).
+const PER_REQUEST_TIMEOUT_MS = 30_000;
 const MAX_ATTEMPTS = 2;
 // Nombre max de soumissions à récupérer en mode incrémentiel (= nouvelles depuis backfill).
 // Dimensionné pour absorber jusqu'à 5h de croissance à pic (~10k/h par formulaire)
