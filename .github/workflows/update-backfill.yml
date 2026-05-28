@@ -1,9 +1,13 @@
 name: Update ODK Backfill
 
-# Désactivé pour éviter de consommer les minutes GitHub Actions.
-# Exécution uniquement manuelle depuis l’onglet Actions.
+# Mise à jour automatique toutes les 2 heures (mode incrémentiel "update").
+# Pensé pour limiter la consommation des minutes Actions tout en gardant les
+# données du dashboard fraîches. Ajuster/désactiver le cron si besoin.
+# Déclenchement manuel également disponible depuis l’onglet Actions.
 
 on:
+  schedule:
+    - cron: "0 */2 * * *"
   workflow_dispatch:
     inputs:
       mode:
