@@ -42,10 +42,14 @@ const OUTSIDE_URL =
 const CAMPAIGN_START = (process.env.CAMPAIGN_START_DATE ?? "2026-04-22").trim();
 
 const BACKFILL_DIR = path.join(process.cwd(), "data", "backfill");
-const PAGE_SIZE = 2000; // Pages plus grandes pour le script (pas de limite Vercel)
+// Pages plus petites : l'API whonghub se met à étrangler les requêtes
+// lourdes (timeout au-delà de start≈6000 avec limit=2000). 500/page rend
+// chaque requête ~4x plus légère et bien plus rapide à renvoyer.
+const PAGE_SIZE = 500;
 const RECORDS_PER_FILE = 10_000; // Diviser les gros jours en plusieurs fichiers
-const PER_REQUEST_TIMEOUT_MS = 45_000; // 45s par requête (tolérant pour CI)
-const MAX_RETRIES = 4;
+const PER_REQUEST_TIMEOUT_MS = 120_000; // 120s : tolérant face à un serveur lent
+const MAX_RETRIES = 5;
+const INTER_PAGE_DELAY_MS = 300; // Petite pause entre pages pour ménager le serveur
 
 const isUpdate = process.argv.includes("--update");
 
@@ -153,6 +157,9 @@ async function fetchAllPages(baseUrl: string, sinceTs: string): Promise<OdkRecor
 
     if (page.length < PAGE_SIZE) break; // Dernière page
     start += PAGE_SIZE;
+    if (INTER_PAGE_DELAY_MS > 0) {
+      await new Promise((r) => setTimeout(r, INTER_PAGE_DELAY_MS));
+    }
   }
 
   process.stdout.write("\n");
