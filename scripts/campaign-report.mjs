@@ -45,13 +45,17 @@ const PROFIL_MAP = {
   team_sup: "Superviseurs d'équipes",
   Team_supervisor: "Superviseurs d'équipes",
   Indp_Monitor: "Moniteurs indépendants",
+  // Toutes les agences / organisations sont regroupées dans "Consultants".
   IQVIA: "Consultants", AFINET: "Consultants", AFNET: "Consultants",
   McKing: "Consultants", APW_Staff: "Consultants", ESR_Staff: "Consultants",
   wcr_Staff: "Consultants", AfriCDC: "Consultants",
+  WHO_Staff: "Consultants", UNICEF_Staff: "Consultants", CDC_Staff: "Consultants",
+  BMGF_Staff: "Consultants", AFR_Staf: "Consultants", UN_other: "Consultants",
+  "Red Cross Officers": "Consultants", Rotary: "Consultants", Oth_NGO: "Consultants",
+  USAID: "Consultants",
 };
-// Tout le reste (WHO_Staff, UNICEF_Staff, CDC_Staff, BMGF_Staff, AFR_Staf,
-// UN_other, Others, Red Cross, Rotary, USAID, Stopper, Oth_NGO, NA...) :
-const FALLBACK_CAT = "Autres profils (OMS/UNICEF/CDC/ONG…)";
+// Reste en "Autres profils" : codes non-agences (Others, Stopper, NA, inconnus).
+const FALLBACK_CAT = "Autres profils (non précisés)";
 const CAT_ORDER = [
   "Superviseurs nationaux",
   "Superviseurs provinciaux",
