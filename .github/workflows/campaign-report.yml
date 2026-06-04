@@ -1,0 +1,52 @@
+name: Campaign Report (Avril vs Mai)
+
+# Exécute le rapport de comparaison de campagnes en interrogeant directement
+# l'API ODK/ONA (api.whonghub.org) avec le secret ODK_TOKEN. Le runner GitHub
+# a accès au réseau whonghub. Le rapport Markdown est imprimé dans les logs.
+#
+# Déclenché automatiquement à chaque push sur la branche de travail, et
+# manuellement via workflow_dispatch.
+
+on:
+  push:
+    branches:
+      - claude/hopeful-edison-6Ev4F
+    paths:
+      - scripts/campaign-report.mjs
+      - .github/workflows/campaign-report.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: campaign-report-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run campaign report
+        env:
+          ODK_TOKEN: ${{ secrets.ODK_TOKEN }}
+          ODK_BASE_URL: ${{ secrets.ODK_BASE_URL || 'https://api.whonghub.org' }}
+        run: node scripts/campaign-report.mjs | tee campaign-report.md
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: campaign-report
+          path: campaign-report.md
