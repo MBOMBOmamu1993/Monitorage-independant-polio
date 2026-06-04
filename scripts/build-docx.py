@@ -3,7 +3,7 @@
 """Génère un fichier .docx (Word) sans dépendance externe (zip + WordprocessingML)."""
 import zipfile, html, os
 
-OUT = os.path.join(os.path.dirname(__file__), "Rapport_AVS_Avril_vs_Mai_2026.docx")
+OUT = os.path.join(os.path.dirname(__file__), "Rapport_AVS_KasaiCentral_Avril_vs_Mai_2026.docx")
 
 NS = ('xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" '
       'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"')
@@ -59,6 +59,7 @@ def table(headers, rows, total=None, aligns=None):
 
 body = []
 body.append(para("Monitorage indépendant Polio — RDC", bold=True, color="0B4EA2", sz=34))
+body.append(para("Province du KASAÏ CENTRAL", bold=True, color="C0392B", sz=24))
 body.append(para("Analyse comparative des soumissions ODK — Campagne Avril 2026 (23–30/04) vs Campagne Mai 2026 (23/05–10/06)",
                  color="555555", sz=20))
 
@@ -66,15 +67,15 @@ body.append(heading("1. Mobilisation des ressources locales — soumissions par 
 body.append(table(
     ["Type de formulaire", "ID ODK", "Avril 2026", "Mai 2026"],
     [
-        ["Supervision des équipes de vaccination", "4497", "63 801", "42 938"],
-        ["Formulaire A pour VPOb", "14850", "1 766", "552"],
-        ["Formulaire A pour nVPO2", "5645", "2 497", "852"],
-        ["Inventaire des MCF (chaîne de froid)", "9442", "1 943", "1 540"],
-        ["Liste de contrôle des formations AVS", "5278", "860", "367"],
-        ["Liste de vérification validation des préparatifs AVS", "4501", "993", "848"],
-        ["Monitorage indépendant dans les ménages", "4498", "18 133", "12 147"],
+        ["Supervision des équipes de vaccination", "4497", "21 832", "17 226"],
+        ["Formulaire A pour VPOb", "14850", "167", "146"],
+        ["Formulaire A pour nVPO2", "5645", "266", "245"],
+        ["Inventaire des MCF (chaîne de froid)", "9442", "225", "146"],
+        ["Liste de contrôle des formations AVS", "5278", "61", "45"],
+        ["Liste de vérification validation des préparatifs AVS", "4501", "102", "55"],
+        ["Monitorage indépendant dans les ménages", "4498", "3 325", "2 761"],
     ],
-    total=["Total", "—", "89 993", "59 244"],
+    total=["Total", "—", "25 978", "20 624"],
 ))
 
 body.append(heading("2. Profil d'acteur (niveau / désignation du superviseur)"))
@@ -84,15 +85,15 @@ body.append(para("Aucun champ « profil » littéral n'existe : le profil d'acte
 body.append(table(
     ["Profil d'acteur", "Avril 2026", "Mai 2026"],
     [
-        ["Superviseurs nationaux", "175", "304"],
-        ["Superviseurs provinciaux", "2 238", "1 352"],
-        ["Superviseurs d'axes (district)", "5 053", "3 886"],
-        ["Superviseurs d'équipes", "67 774", "43 978"],
-        ["Moniteurs indépendants", "7 012", "5 009"],
-        ["Consultants (OMS, UNICEF, CDC, BMGF, IQVIA, AFENET, ONG, Croix-Rouge, stoppeurs…)", "1 317", "1 587"],
-        ["Autres profils (non précisés)", "218", "181"],
+        ["Superviseurs nationaux", "82", "59"],
+        ["Superviseurs provinciaux", "578", "446"],
+        ["Superviseurs d'axes (district)", "1 230", "1 015"],
+        ["Superviseurs d'équipes", "21 695", "16 916"],
+        ["Moniteurs indépendants", "1 349", "1 300"],
+        ["Consultants (OMS, UNICEF, CDC, BMGF, IQVIA, AFENET, ONG, Croix-Rouge, stoppeurs…)", "316", "277"],
+        ["Autres profils (non précisés)", "70", "74"],
     ],
-    total=["Total renseigné", "83 787", "56 297"],
+    total=["Total renseigné", "25 320", "20 087"],
     aligns=["left", "right", "right"],
 ))
 
@@ -102,33 +103,34 @@ body.append(para("Données brutes ODK (avant regroupement du §2), pour transpar
 body.append(table(
     ["Code ODK", "Avril 2026", "Mai 2026"],
     [
-        ["team_sup (superviseur d'équipe)", "67 615", "43 916"],
-        ["Team_supervisor", "159", "62"],
-        ["Indp_Monitor (moniteur indépendant)", "7 012", "5 009"],
-        ["District_sup (superviseur d'axe)", "5 036", "3 876"],
-        ["subdistrict_sup", "17", "10"],
-        ["region_supervi (superviseur provincial)", "2 238", "1 352"],
-        ["national_super (superviseur national)", "175", "304"],
-        ["WHO_Staff", "655", "818"],
-        ["IQVIA", "203", "329"],
-        ["AFINET / AFNET", "92", "131"],
-        ["Stopper", "199", "142"],
-        ["Others", "218", "181"],
-        ["UN_other", "36", "73"],
-        ["UNICEF_Staff", "36", "41"],
-        ["AFR_Staf", "28", "5"],
-        ["Red Cross Officers", "25", "1"],
-        ["BMGF_Staff", "11", "12"],
-        ["CDC_Staff", "10", "9"],
-        ["Oth_NGO", "3", "12"],
-        ["McKing/ESR/Rotary/AfriCDC/APW/wcr/USAID", "19", "14"],
+        ["team_sup (superviseur d'équipe)", "21 668", "16 894"],
+        ["Team_supervisor", "27", "22"],
+        ["Indp_Monitor (moniteur indépendant)", "1 349", "1 300"],
+        ["District_sup (superviseur d'axe)", "1 230", "1 014"],
+        ["subdistrict_sup", "0", "1"],
+        ["region_supervi (superviseur provincial)", "578", "446"],
+        ["national_super (superviseur national)", "82", "59"],
+        ["WHO_Staff", "147", "139"],
+        ["IQVIA", "59", "88"],
+        ["Stopper (stoppeurs)", "69", "27"],
+        ["Others (non précisé)", "70", "74"],
+        ["UNICEF_Staff", "10", "4"],
+        ["AFINET / AFNET", "13", "5"],
+        ["Oth_NGO", "1", "9"],
+        ["AFR_Staf", "4", "0"],
+        ["ESR_Staff", "3", "1"],
+        ["BMGF_Staff", "3", "0"],
+        ["McKing", "3", "2"],
+        ["CDC_Staff", "0", "1"],
+        ["AfriCDC / Rotary / wcr_Staff / Red Cross", "4", "1"],
     ],
     aligns=["left", "right", "right"],
 ))
 
-body.append(para("Source : API ODK/ONA whonghub.org (projet omsdrc/851) — formulaires 4497, 14850, 5645, 9442, 5278, 4501, 4498. "
-                 "Fenêtres : Avril 23–30/04/2026 ; Mai 23/05–10/06/2026. Extraction du 04/06/2026 — la fenêtre de mai étant "
-                 "encore en cours, les chiffres de mai sont partiels à cette date.", color="777777", sz=16, space_before=200))
+body.append(para("Filtre : province = Kasaï Central (champ Region). Source : API ODK/ONA whonghub.org (projet omsdrc/851) — "
+                 "formulaires 4497, 14850, 5645, 9442, 5278, 4501, 4498. Fenêtres : Avril 23–30/04/2026 ; Mai 23/05–10/06/2026. "
+                 "Extraction du 04/06/2026 — la fenêtre de mai étant encore en cours, les chiffres de mai sont partiels à cette date.",
+                 color="777777", sz=16, space_before=200))
 
 document = (f'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             f'<w:document {NS}><w:body>{"".join(body)}'
