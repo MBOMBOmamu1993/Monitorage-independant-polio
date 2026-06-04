@@ -36,6 +36,22 @@ const WINDOWS = [
   { key: "Mai 2026", gte: "2026-05-23", lte: "2026-06-10" },
 ];
 
+// Filtre province : seules les soumissions de cette province sont comptées.
+// Mettre PROVINCE_LABEL à null pour désactiver le filtre (toutes provinces).
+const PROVINCE_LABEL = "Kasaï Central";
+const PROVINCE_TARGET = "KASAICENTRAL"; // forme normalisée (A-Z0-9 only)
+const PROVINCE_FIELDS = ["Region", "Province", "region", "province"];
+const normProv = (s) => String(s).toUpperCase().replace(/[^A-Z0-9]/g, "");
+function matchProvince(rec) {
+  if (!PROVINCE_TARGET) return true;
+  for (const f of PROVINCE_FIELDS) {
+    const v = rec[f];
+    if (v == null || typeof v === "object") continue;
+    if (normProv(v) === PROVINCE_TARGET) return true;
+  }
+  return false;
+}
+
 // Mapping des codes de désignation vers les catégories du rapport narratif.
 const PROFIL_MAP = {
   national_super: "Superviseurs nationaux",
@@ -103,7 +119,8 @@ async function main() {
     const row = { label: form.label, id: form.id, counts: {} };
     for (const w of WINDOWS) {
       try {
-        const recs = await fetchAll(form.id, w.gte, w.lte);
+        const allRecs = await fetchAll(form.id, w.gte, w.lte);
+        const recs = allRecs.filter(matchProvince);
         row.counts[w.key] = recs.length;
         if (form.profilField) {
           for (const r of recs) {
@@ -126,6 +143,7 @@ async function main() {
 
   const L = [];
   L.push("===REPORT_START===", "");
+  if (PROVINCE_LABEL) L.push(`**Province : ${PROVINCE_LABEL}** (filtre sur le champ Region)`, "");
   L.push("### 1. Soumissions par formulaire — Avril vs Mai 2026", "");
   L.push("| Formulaire | ID | Avril 2026 | Mai 2026 |", "|---|---|---|---|");
   let tA = 0, tM = 0;
