@@ -1,8 +1,7 @@
 name: Campaign Report (Avril vs Mai)
 
-# Exécute le rapport de comparaison de campagnes en interrogeant directement
-# l'API ODK/ONA (api.whonghub.org) avec le secret ODK_TOKEN. Le runner GitHub
-# a accès au réseau whonghub. Le rapport Markdown est imprimé dans les logs.
+# Interroge directement l'API ODK/ONA (api.whonghub.org) avec le secret
+# ODK_TOKEN et imprime le rapport de comparaison de campagnes dans les logs.
 
 on:
   push:
@@ -10,7 +9,6 @@ on:
       - claude/hopeful-edison-6Ev4F
     paths:
       - scripts/campaign-report.mjs
-      - scripts/introspect-profil.mjs
       - .github/workflows/campaign-report.yml
   workflow_dispatch:
 
@@ -36,14 +34,7 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Introspect profil fields
-        env:
-          ODK_TOKEN: ${{ secrets.ODK_TOKEN }}
-          ODK_BASE_URL: ${{ secrets.ODK_BASE_URL || 'https://api.whonghub.org' }}
-        run: node scripts/introspect-profil.mjs
-
       - name: Run campaign report
-        if: ${{ vars.RUN_FULL_REPORT == 'true' }}
         env:
           ODK_TOKEN: ${{ secrets.ODK_TOKEN }}
           ODK_BASE_URL: ${{ secrets.ODK_BASE_URL || 'https://api.whonghub.org' }}
