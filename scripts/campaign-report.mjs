@@ -52,9 +52,9 @@ const PROFIL_MAP = {
   WHO_Staff: "Consultants", UNICEF_Staff: "Consultants", CDC_Staff: "Consultants",
   BMGF_Staff: "Consultants", AFR_Staf: "Consultants", UN_other: "Consultants",
   "Red Cross Officers": "Consultants", Rotary: "Consultants", Oth_NGO: "Consultants",
-  USAID: "Consultants",
+  USAID: "Consultants", Stopper: "Consultants",
 };
-// Reste en "Autres profils" : codes non-agences (Others, Stopper, NA, inconnus).
+// Reste en "Autres profils" : codes non précisés (Others, NA, inconnus).
 const FALLBACK_CAT = "Autres profils (non précisés)";
 const CAT_ORDER = [
   "Superviseurs nationaux",
