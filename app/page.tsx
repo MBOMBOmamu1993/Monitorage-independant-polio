@@ -19,6 +19,12 @@ import {
   pickAggregatesForLevel,
   resolveDrillLevel,
 } from "@/lib/client/drill-level";
+import campaign from "@/config/campaign.config.json";
+
+// Période de monitorage dérivée de la config de campagne (plus de date figée) :
+// "2026-06-18" → "18/06/2026".
+const frDate = (iso: string) => iso.split("-").reverse().join("/");
+const MONITORING_PERIOD = `du ${frDate(campaign.campaign_start_date)} au ${frDate(campaign.campaign_end_date)}`;
 
 export default function OverviewPage() {
   const { data, isLoading, error } = useAnalytics();
@@ -49,16 +55,6 @@ export default function OverviewPage() {
     .sort((a, b) => a.value - b.value)
     .slice(0, 20);
 
-  const periodLabel = (() => {
-    const fmt = (d: string) =>
-      new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
-    const { minDate, maxDate } = data.meta;
-    if (minDate && maxDate) return `${fmt(minDate)} → ${fmt(maxDate)}`;
-    if (minDate) return `depuis le ${fmt(minDate)}`;
-    if (maxDate) return `jusqu'au ${fmt(maxDate)}`;
-    return "toute la campagne";
-  })();
-
   const topByVolume = [...aggs]
     .filter((r) => r.childrenPolioHousehold + r.childrenPolioOutside > 0)
     .sort(
@@ -82,7 +78,7 @@ export default function OverviewPage() {
       )}
       <PageHeader
         title="Vue d'ensemble"
-        subtitle={`Monitorage ${periodLabel} · Niveau d'agrégation : ${levelLabel}`}
+        subtitle={`Monitorage ${MONITORING_PERIOD} · Niveau d'agrégation : ${levelLabel}`}
       />
 
       <Grid cols={4} className="mb-4">
