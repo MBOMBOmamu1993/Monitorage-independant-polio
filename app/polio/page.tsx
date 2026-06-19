@@ -36,6 +36,7 @@ export default function PolioPage() {
 
   // Pré-calculs serveur — voir lib/etl/pipeline.ts (réponse Vercel <4.5 MB).
   const b = data.precomputed.polioBreakdown;
+  const reasonNotSpecified = data.precomputed.polioReasonsSummary.reasonNotSpecified ?? 0;
   const reasonsLvl = data.precomputed.reasonsByLevel[level];
   const nonVaxByUnit = reasonsLvl.nonVaxPolio;
   const refusalByUnit = reasonsLvl.polioRefusals;
@@ -114,7 +115,7 @@ export default function PolioPage() {
         subtitle={`Analyses ménage & hors-ménage · Seuil couverture 95% · Seuil non-vaccinés 5% · Niveau : ${levelLabel}`}
       />
 
-      <Grid cols={4} className="mb-4">
+      <Grid cols={6} className="mb-4">
         <KpiCard
           label="Couverture globale"
           value={fmtPct(globalPct)}
@@ -141,6 +142,12 @@ export default function PolioPage() {
           value={fmtInt(b.absences)}
           tone={b.absences ? "warn" : "neutral"}
           icon="🕒"
+        />
+        <KpiCard
+          label="Raison non renseignée"
+          value={fmtInt(reasonNotSpecified)}
+          tone={reasonNotSpecified ? "warn" : "neutral"}
+          icon="⚠️"
         />
       </Grid>
 

@@ -142,6 +142,7 @@ export interface ReasonsSummary {
   absences: number;
   notReachedTeam: number;
   alreadyRoutine: number;
+  reasonNotSpecified: number;
   otherNonVax: number;
   total: number;
 }
@@ -151,6 +152,7 @@ export function polioReasonsSummary(subs: CleanSubmission[]): ReasonsSummary {
     abs = 0,
     notTeam = 0,
     routine = 0,
+    notSpecified = 0,
     other = 0;
   for (const s of subs) {
     const st = s.stats;
@@ -158,18 +160,17 @@ export function polioReasonsSummary(subs: CleanSubmission[]): ReasonsSummary {
     abs += st.absences;
     notTeam += st.notReachedTeam;
     routine += st.alreadyRoutine;
-
-    const total = st.totU5 - st.vacU5;
-    const classified = st.refusals + st.absences + st.notReachedTeam + st.alreadyRoutine;
-    other += Math.max(0, total - classified);
+    notSpecified += st.reasonNotSpecified;
+    other += st.childAsleep + st.childHfTooFar + st.childOthers;
   }
   return {
     refusals: refus,
     absences: abs,
     notReachedTeam: notTeam,
     alreadyRoutine: routine,
+    reasonNotSpecified: notSpecified,
     otherNonVax: other,
-    total: refus + abs + notTeam + routine + other,
+    total: refus + abs + notTeam + routine + notSpecified + other,
   };
 }
 
@@ -507,6 +508,7 @@ export function nonVaccinationReasonsByUnit(
     { key: "Endormi", color: "#0ea5e9", pick: (s) => s.stats.childAsleep },
     { key: "HF trop loin", color: "#a855f7", pick: (s) => s.stats.childHfTooFar },
     { key: "Déjà vacciné (routine)", color: "#22b457", pick: (s) => s.stats.alreadyRoutine },
+    { key: "Raison non renseignée", color: "#64748b", pick: (s) => s.stats.reasonNotSpecified },
     { key: "Autres", color: "#94a3b8", pick: (s) => s.stats.childOthers },
   ], topN);
 }
