@@ -253,19 +253,37 @@ export function parseSubmission(
 
   const aggregateAbsences = pickNum(r, map.childAbsentTotal);
   const finalAbsences = aggregateAbsences ?? 0;
+  const notReachedTeam = pickNum(r, map.childNoHwPresent) ?? 0;
+  const alreadyRoutine = pickNum(r, map.childVaccinatedRoutine) ?? 0;
+  const childAsleep = pickNum(r, map.childAsleep) ?? 0;
+  const childHfTooFar = pickNum(r, map.childHfTooFar) ?? 0;
+  const childOthers = pickNum(r, map.childOthers) ?? 0;
+  const nonVacU5 = Math.max(0, totU5 - vacU5);
+  const reasonNotSpecified = Math.max(
+    0,
+    nonVacU5 -
+      (finalRefusals +
+        finalAbsences +
+        notReachedTeam +
+        alreadyRoutine +
+        childAsleep +
+        childHfTooFar +
+        childOthers)
+  );
 
   const stats: SubmissionStats = {
     totU5,
     vacU5,
-    nonVacU5: Math.max(0, totU5 - vacU5),
+    nonVacU5,
     refusals: finalRefusals,
     absences: finalAbsences,
-    notReachedTeam: pickNum(r, map.childNoHwPresent) ?? 0,
-    alreadyRoutine: pickNum(r, map.childVaccinatedRoutine) ?? 0,
+    notReachedTeam,
+    alreadyRoutine,
+    reasonNotSpecified,
     // Décomposition Non-vaccination (group1)
-    childAsleep: pickNum(r, map.childAsleep) ?? 0,
-    childHfTooFar: pickNum(r, map.childHfTooFar) ?? 0,
-    childOthers: pickNum(r, map.childOthers) ?? 0,
+    childAsleep,
+    childHfTooFar,
+    childOthers,
     parentInformed: informedNum === null ? null : informedNum >= 1,
     infoChannels,
     // Détail Refus

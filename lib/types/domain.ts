@@ -37,6 +37,7 @@ export interface SubmissionStats {
   absences: number;
   notReachedTeam: number;
   alreadyRoutine: number;
+  reasonNotSpecified: number;
   // Décomposition Non-vaccination (depuis group1)
   childAsleep: number;     // Endormi
   childHfTooFar: number;   // HF trop loin (assimilé "Non revisité")
@@ -302,6 +303,7 @@ export interface PrecomputedPolioReasonsSummary {
   absences: number;
   notReachedTeam: number;
   alreadyRoutine: number;
+  reasonNotSpecified: number;
   otherNonVax: number;
   total: number;
 }
@@ -378,8 +380,8 @@ export interface FactRow {
   abR: number;  // absents RR
 
   // Raisons Non-Vaccination Polio (détail pour stacked bar)
-  // nv_... : not reached, asleep, too far, routine, others
-  nv_nr: number; nv_as: number; nv_tf: number; nv_ro: number; nv_ot: number;
+  // nv_... : not reached, asleep, too far, routine, reason not specified, others
+  nv_nr: number; nv_as: number; nv_tf: number; nv_ro: number; nv_ns: number; nv_ot: number;
   // Refus Polio (détail)
   // rf_... : religion, side effects, too many, sick, decision, trust, other
   rf_re: number; rf_se: number; rf_tm: number; rf_si: number; rf_de: number; rf_tr: number; rf_ot: number;

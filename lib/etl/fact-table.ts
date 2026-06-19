@@ -40,7 +40,7 @@ export function buildFactTable(
         subs: 0,
         evP: 0, vaP: 0, nvP: 0, rfP: 0, abP: 0,
         evR: 0, vaR: 0, nvR: 0, rfR: 0, abR: 0,
-        nv_nr: 0, nv_as: 0, nv_tf: 0, nv_ro: 0, nv_ot: 0,
+        nv_nr: 0, nv_as: 0, nv_tf: 0, nv_ro: 0, nv_ns: 0, nv_ot: 0,
         rf_re: 0, rf_se: 0, rf_tm: 0, rf_si: 0, rf_de: 0, rf_tr: 0, rf_ot: 0,
         ab_fa: 0, ab_ma: 0, ab_pl: 0, ab_sc: 0, ab_so: 0, ab_tv: 0, ab_pa: 0, ab_ot: 0,
         rr_re: {},
@@ -67,6 +67,7 @@ export function buildFactTable(
     row.nv_as += st.childAsleep;
     row.nv_tf += st.childHfTooFar;
     row.nv_ro += st.alreadyRoutine;
+    row.nv_ns += st.reasonNotSpecified;
     row.nv_ot += st.childOthers;
 
     // Détail Refus Polio
