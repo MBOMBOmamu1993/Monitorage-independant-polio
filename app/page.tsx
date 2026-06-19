@@ -46,6 +46,7 @@ export default function OverviewPage() {
   const kpi = data.precomputed.kpi;
   const reports = data.precomputed.reports;
   const trendDays = data.precomputed.timeline;
+  const polioReasonsSummary = data.precomputed.polioReasonsSummary;
   const polioReasonsUnit = data.precomputed.reasonsByLevel[level].nonVaxPolio;
   const polioRefusUnit = data.precomputed.reasonsByLevel[level].polioRefusals;
 
@@ -112,7 +113,7 @@ export default function OverviewPage() {
         />
       </Grid>
 
-      <Grid cols={4} className="mb-4">
+      <Grid cols={6} className="mb-4">
         <KpiCard
           label="Refus Polio"
           value={fmtInt(kpi.refusalsPolio)}
@@ -120,6 +121,12 @@ export default function OverviewPage() {
           icon="🚫"
         />
         <KpiCard label="Absents" value={fmtInt(kpi.absences)} tone={kpi.absences ? "warn" : "neutral"} icon="🕒" />
+        <KpiCard
+          label="Raison non renseignée"
+          value={fmtInt(polioReasonsSummary.reasonNotSpecified ?? 0)}
+          tone={polioReasonsSummary.reasonNotSpecified ? "warn" : "neutral"}
+          icon="⚠️"
+        />
       </Grid>
 
       <Grid cols={4} className="mb-4">

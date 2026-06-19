@@ -151,6 +151,7 @@ const POLIO_NONVAX_SCHEMA = [
   { name: "Endormi", color: "#0ea5e9" },
   { name: "HF trop loin", color: "#a855f7" },
   { name: "Déjà vacciné (routine)", color: "#22b457" },
+  { name: "Raison non renseignée", color: "#64748b" },
   { name: "Autres", color: "#94a3b8" },
 ];
 
@@ -196,6 +197,7 @@ export function deriveFilteredBundle(bundle: AnalyticsBundle, f: FiltersState): 
     let polioAbsTotalGlobal = 0;
     let polioNotReachedGlobal = 0;
     let polioRoutineGlobal = 0;
+    let polioReasonNotSpecifiedGlobal = 0;
     let polioOthersGlobal = 0;
     let rrNonVaxTotal = 0;
     let rrOffreCount = 0;
@@ -225,6 +227,7 @@ export function deriveFilteredBundle(bundle: AnalyticsBundle, f: FiltersState): 
       polioAbsTotalGlobal += r.abP;
       polioNotReachedGlobal += r.nv_nr;
       polioRoutineGlobal += r.nv_ro;
+      polioReasonNotSpecifiedGlobal += r.nv_ns ?? 0;
       polioOthersGlobal += r.nv_as + r.nv_tf + r.nv_ot;
       polioRefSum += r.rfP;
       polioAbsSum += r.abP;
@@ -382,6 +385,7 @@ export function deriveFilteredBundle(bundle: AnalyticsBundle, f: FiltersState): 
         addReason(rb.nonVaxP, k, "Endormi", r.nv_as);
         addReason(rb.nonVaxP, k, "HF trop loin", r.nv_tf);
         addReason(rb.nonVaxP, k, "Déjà vacciné (routine)", r.nv_ro);
+        addReason(rb.nonVaxP, k, "Raison non renseignée", r.nv_ns ?? 0);
         addReason(rb.nonVaxP, k, "Autres", r.nv_ot);
 
         addReason(rb.refP, k, "Religion", r.rf_re);
@@ -557,12 +561,19 @@ export function deriveFilteredBundle(bundle: AnalyticsBundle, f: FiltersState): 
       absences: polioAbsSum,
     };
 
-    const polioReasonsTotal = polioRefTotalGlobal + polioAbsTotalGlobal + polioNotReachedGlobal + polioRoutineGlobal + polioOthersGlobal;
+    const polioReasonsTotal =
+      polioRefTotalGlobal +
+      polioAbsTotalGlobal +
+      polioNotReachedGlobal +
+      polioRoutineGlobal +
+      polioReasonNotSpecifiedGlobal +
+      polioOthersGlobal;
     const polioReasonsSummaryF: PrecomputedPolioReasonsSummary = {
       refusals: polioRefTotalGlobal,
       absences: polioAbsTotalGlobal,
       notReachedTeam: polioNotReachedGlobal,
       alreadyRoutine: polioRoutineGlobal,
+      reasonNotSpecified: polioReasonNotSpecifiedGlobal,
       otherNonVax: polioOthersGlobal,
       total: polioReasonsTotal,
     };

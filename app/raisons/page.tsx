@@ -48,7 +48,7 @@ export default function RaisonsPage() {
         subtitle={`Niveau d'analyse : ${levelLabel} · Filtres appliqués`}
       />
 
-      <Grid cols={4} className="mb-4">
+      <Grid cols={6} className="mb-4">
         <KpiCard label="Cas non-vaccinés Polio" value={fmtInt(reasonsPolio.total)} tone={reasonsPolio.total ? "bad" : "neutral"} icon="⚠️" />
         <KpiCard
           label="Refus Polio"
@@ -57,6 +57,12 @@ export default function RaisonsPage() {
           icon="🚫"
         />
         <KpiCard label="Absents" value={fmtInt(reasonsPolio.absences)} tone={reasonsPolio.absences ? "warn" : "neutral"} icon="🕒" />
+        <KpiCard
+          label="Raison non renseignée"
+          value={fmtInt(reasonsPolio.reasonNotSpecified ?? 0)}
+          tone={reasonsPolio.reasonNotSpecified ? "warn" : "neutral"}
+          icon="⚠️"
+        />
         <KpiCard
           label="Parents informés"
           value={fmtPct(avgInfo)}
