@@ -49,6 +49,16 @@ export default function OverviewPage() {
     .sort((a, b) => a.value - b.value)
     .slice(0, 20);
 
+  const periodLabel = (() => {
+    const fmt = (d: string) =>
+      new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+    const { minDate, maxDate } = data.meta;
+    if (minDate && maxDate) return `${fmt(minDate)} → ${fmt(maxDate)}`;
+    if (minDate) return `depuis le ${fmt(minDate)}`;
+    if (maxDate) return `jusqu'au ${fmt(maxDate)}`;
+    return "toute la campagne";
+  })();
+
   const topByVolume = [...aggs]
     .filter((r) => r.childrenPolioHousehold + r.childrenPolioOutside > 0)
     .sort(
@@ -72,7 +82,7 @@ export default function OverviewPage() {
       )}
       <PageHeader
         title="Vue d'ensemble"
-        subtitle={`Monitorage 22 mai → 10 juin 2026 · Niveau d'agrégation : ${levelLabel}`}
+        subtitle={`Monitorage ${periodLabel} · Niveau d'agrégation : ${levelLabel}`}
       />
 
       <Grid cols={4} className="mb-4">
