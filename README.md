@@ -15,9 +15,13 @@ Le dashboard lit le formulaire de monitorage Polio via l'API ONA :
 https://api.whonghub.org/api/v1/data/4498.json
 ```
 
+Ce 2e passage couvre les **21 provinces** de la RDC autres que les 5
+provinces du 1er passage (Kongo Central, Kwango, Kasai Central, Kasai,
+Lualaba). Le périmètre est défini dans `config/provinces.ts`.
+
 La fenêtre de monitorage affichée est bornée par les variables
 d'environnement (voir `.env.example`) : seules les soumissions datées du
-**23/05/2026 au 10/06/2026** sont prises en compte.
+**18/06/2026 au 30/06/2026** sont prises en compte.
 
 ## Configuration
 
@@ -29,8 +33,8 @@ sur Vercel :
 | `ODK_TOKEN` | jeton API ONA |
 | `ODK_HOUSEHOLDS_FORM_URL` | `https://api.whonghub.org/api/v1/data/4498.json` |
 | `ODK_OUTSIDE_FORM_URL` | `https://api.whonghub.org/api/v1/data/4499.json` |
-| `CAMPAIGN_START_DATE` | `2026-05-23` |
-| `MONITORING_END_DATE` | `2026-06-10` |
+| `CAMPAIGN_START_DATE` | `2026-06-18` |
+| `MONITORING_END_DATE` | `2026-06-30` |
 | `CAMPAIGN_INCLUDE_PRE_START` | `false` |
 
 ## Développement

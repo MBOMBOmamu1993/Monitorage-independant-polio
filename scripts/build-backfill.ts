@@ -39,7 +39,7 @@ const HOUSEHOLDS_URL =
 const OUTSIDE_URL =
   process.env.ODK_OUTSIDE_FORM_URL ??
   "https://api.whonghub.org/api/v1/data/4499.json";
-const CAMPAIGN_START = (process.env.CAMPAIGN_START_DATE ?? "2026-04-22").trim();
+const CAMPAIGN_START = (process.env.CAMPAIGN_START_DATE ?? "2026-06-18").trim();
 
 const BACKFILL_DIR = path.join(process.cwd(), "data", "backfill");
 // Pages plus petites : l'API whonghub se met à étrangler les requêtes
