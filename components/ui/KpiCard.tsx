@@ -36,7 +36,7 @@ export function KpiCard({
         t.accent
       )}
     >
-      <div className="kpi-label truncate">{label}</div>
+      <div className="kpi-label whitespace-normal break-words leading-snug">{label}</div>
       <div className={cn("kpi-value mt-1.5", t.value)}>{value}</div>
       {sub ? <div className="kpi-sub mt-1">{sub}</div> : null}
     </div>
