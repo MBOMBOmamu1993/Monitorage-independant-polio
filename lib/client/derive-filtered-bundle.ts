@@ -114,6 +114,19 @@ function addReason(map: Map<string, Record<string, number>>, unit: string, key: 
   map.set(unit, slot);
 }
 
+function reasonNotSpecified(r: FactRow): number {
+  if (typeof r.nv_ns === "number") return r.nv_ns;
+  const known =
+    r.rfP +
+    r.abP +
+    r.nv_nr +
+    r.nv_as +
+    r.nv_tf +
+    r.nv_ro +
+    r.nv_ot;
+  return Math.max(0, r.nvP - known);
+}
+
 /**
  * Construit une série pour graphique 100% empilée à partir d'un schéma figé
  * (clés de série + couleurs). Retient les top-12 unités par total.
@@ -227,7 +240,7 @@ export function deriveFilteredBundle(bundle: AnalyticsBundle, f: FiltersState): 
       polioAbsTotalGlobal += r.abP;
       polioNotReachedGlobal += r.nv_nr;
       polioRoutineGlobal += r.nv_ro;
-      polioReasonNotSpecifiedGlobal += r.nv_ns ?? 0;
+      polioReasonNotSpecifiedGlobal += reasonNotSpecified(r);
       polioOthersGlobal += r.nv_as + r.nv_tf + r.nv_ot;
       polioRefSum += r.rfP;
       polioAbsSum += r.abP;
@@ -385,7 +398,7 @@ export function deriveFilteredBundle(bundle: AnalyticsBundle, f: FiltersState): 
         addReason(rb.nonVaxP, k, "Endormi", r.nv_as);
         addReason(rb.nonVaxP, k, "HF trop loin", r.nv_tf);
         addReason(rb.nonVaxP, k, "Déjà vacciné (routine)", r.nv_ro);
-        addReason(rb.nonVaxP, k, "Raison non renseignée", r.nv_ns ?? 0);
+        addReason(rb.nonVaxP, k, "Raison non renseignée", reasonNotSpecified(r));
         addReason(rb.nonVaxP, k, "Autres", r.nv_ot);
 
         addReason(rb.refP, k, "Religion", r.rf_re);
