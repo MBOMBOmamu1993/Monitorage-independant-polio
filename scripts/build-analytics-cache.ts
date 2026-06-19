@@ -28,8 +28,20 @@ import { CAMPAIGN_PROVINCES } from "../config/provinces";
 import { fetchFormSubmissions } from "../lib/server/odk-client";
 import { buildAnalytics } from "../lib/etl/pipeline";
 import { provinceSlug } from "../lib/server/static-analytics";
+import { ENV } from "../lib/server/env";
 
 const OUTPUT_DIR = path.join(process.cwd(), "data", "analytics", "provinces");
+
+// Fenêtre de monitorage appliquée AUX bundles statiques par province.
+// Sans ça, les bundles servis par le fast-path (/api/analytics?province=…)
+// contiendraient toutes les dates du backfill, court-circuitant le plafond/
+// plancher de la campagne. On reproduit ici la logique de la route :
+//  - plancher dur à CAMPAIGN_START_DATE (sauf si CAMPAIGN_INCLUDE_PRE_START)
+//  - plafond dur à MONITORING_END_DATE
+const WINDOW_MIN_DATE = ENV.CAMPAIGN_INCLUDE_PRE_START
+  ? undefined
+  : ENV.CAMPAIGN_START_DATE;
+const WINDOW_MAX_DATE = ENV.MONITORING_END_DATE;
 
 async function buildForProvince(
   province: string,
@@ -40,6 +52,8 @@ async function buildForProvince(
   const bundle = buildAnalytics(hh, osh, {
     restrictToCampaignProvinces: true,
     province,
+    minDate: WINDOW_MIN_DATE,
+    maxDate: WINDOW_MAX_DATE,
   });
 
   const lean = {

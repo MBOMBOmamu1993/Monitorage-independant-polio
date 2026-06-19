@@ -62,8 +62,8 @@ jobs:
           ODK_TOKEN: ${{ secrets.ODK_TOKEN }}
           ODK_HOUSEHOLDS_FORM_URL: ${{ secrets.ODK_HOUSEHOLDS_FORM_URL || 'https://api.whonghub.org/api/v1/data/4498.json' }}
           ODK_OUTSIDE_FORM_URL: ${{ secrets.ODK_OUTSIDE_FORM_URL || 'https://api.whonghub.org/api/v1/data/4499.json' }}
-          CAMPAIGN_START_DATE: "2026-05-23"
-          MONITORING_END_DATE: "2026-06-10"
+          CAMPAIGN_START_DATE: "2026-06-18"
+          MONITORING_END_DATE: "2026-06-30"
 
       - name: Rebuild analytics bundles
         run: npm run build:analytics
@@ -71,8 +71,8 @@ jobs:
           ODK_TOKEN: ${{ secrets.ODK_TOKEN }}
           ODK_HOUSEHOLDS_FORM_URL: ${{ secrets.ODK_HOUSEHOLDS_FORM_URL || 'https://api.whonghub.org/api/v1/data/4498.json' }}
           ODK_OUTSIDE_FORM_URL: ${{ secrets.ODK_OUTSIDE_FORM_URL || 'https://api.whonghub.org/api/v1/data/4499.json' }}
-          CAMPAIGN_START_DATE: "2026-05-23"
-          MONITORING_END_DATE: "2026-06-10"
+          CAMPAIGN_START_DATE: "2026-06-18"
+          MONITORING_END_DATE: "2026-06-30"
 
       - name: Commit and push data if changed
         run: |
