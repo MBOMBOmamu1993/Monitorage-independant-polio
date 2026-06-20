@@ -135,7 +135,7 @@ function reasonNotSpecified(r: FactRow): number {
 function buildSeriesFromSchema(
   map: Map<string, Record<string, number>>,
   schema: { name: string; color?: string }[],
-  topN = 12
+  topN = Number.POSITIVE_INFINITY
 ): PrecomputedByUnitSeries {
   const names = schema.map((s) => s.name);
   const entries = Array.from(map.entries())

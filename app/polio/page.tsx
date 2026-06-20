@@ -64,8 +64,7 @@ export default function PolioPage() {
       };
     })
     .filter((r) => r.ev > 0)
-    .sort((a, b) => b.nv - a.nv)
-    .slice(0, 20);
+    .sort((a, b) => b.nv - a.nv);
 
   // M vs HM side-by-side (niveau adaptatif)
   const sideRows = aggs
@@ -84,8 +83,7 @@ export default function PolioPage() {
       return { label: labelOf(a, level), hh, osh, ev };
     })
     .filter((r) => r.ev > 0)
-    .sort((a, b) => b.hh + b.osh - (a.hh + a.osh))
-    .slice(0, 15);
+    .sort((a, b) => b.hh + b.osh - (a.hh + a.osh));
 
   // Top unités par volume non-vac (stacked horizontal)
   const topGap = aggs
@@ -96,8 +94,7 @@ export default function PolioPage() {
       tot: a.polioNotVaccinatedHousehold + a.polioNotVaccinatedOutside,
     }))
     .filter((r) => r.tot > 0)
-    .sort((a, b) => b.tot - a.tot)
-    .slice(0, 15);
+    .sort((a, b) => b.tot - a.tot);
 
   return (
     <>
@@ -339,7 +336,7 @@ export default function PolioPage() {
 
       <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
         {(() => {
-          const rows = parentInformedRows.slice(0, 20);
+          const rows = parentInformedRows;
           if (!rows.length) return null;
           return (
             <Card>

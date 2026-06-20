@@ -4,7 +4,9 @@
  * Combo bar (count) + line (%) avec marqueur de seuil OMS.
  * Inspiré PowerBI : "Nombre et % enfants non vaccinés par province".
  */
+import { useEffect, useMemo, useState } from "react";
 import EChart from "./EChart";
+import ChartPager from "./ChartPager";
 import type * as echarts from "echarts/core";
 import { fmtUnit } from "@/lib/client/format";
 
@@ -18,6 +20,7 @@ interface Props {
   colorBar?: string;
   colorLine?: string;
   height?: number;
+  pageSize?: number;
 }
 
 export default function ComboBarLine({
@@ -30,8 +33,29 @@ export default function ComboBarLine({
   colorBar = "#0093d5",
   colorLine = "#e23636",
   height = 320,
+  pageSize = 12,
 }: Props) {
-  const displayCategories = categories.map(fmtUnit);
+  const [page, setPage] = useState(0);
+  const effectivePageSize = pageSize > 0 ? pageSize : Math.max(1, categories.length);
+  const pageCount = Math.max(1, Math.ceil(categories.length / effectivePageSize));
+  useEffect(() => {
+    setPage((p) => Math.min(p, pageCount - 1));
+  }, [pageCount]);
+
+  const start = page * effectivePageSize;
+  const pageCategories = useMemo(
+    () => categories.slice(start, start + effectivePageSize),
+    [categories, start, effectivePageSize],
+  );
+  const pageCounts = useMemo(
+    () => counts.slice(start, start + effectivePageSize),
+    [counts, start, effectivePageSize],
+  );
+  const pagePcts = useMemo(
+    () => pcts.slice(start, start + effectivePageSize),
+    [pcts, start, effectivePageSize],
+  );
+  const displayCategories = pageCategories.map(fmtUnit);
   const option: echarts.EChartsCoreOption = {
     tooltip: { trigger: "axis", axisPointer: { type: "cross" } },
     legend: { top: 0, right: 10, textStyle: { fontSize: 11 } },
@@ -55,7 +79,7 @@ export default function ComboBarLine({
       {
         name: countLabel,
         type: "bar",
-        data: counts,
+        data: pageCounts,
         itemStyle: { color: colorBar, borderRadius: [3, 3, 0, 0] },
         barMaxWidth: 28,
       },
@@ -63,7 +87,7 @@ export default function ComboBarLine({
         name: pctLabel,
         type: "line",
         yAxisIndex: 1,
-        data: pcts,
+        data: pagePcts,
         smooth: true,
         symbol: "circle",
         symbolSize: 7,
@@ -78,5 +102,16 @@ export default function ComboBarLine({
       },
     ],
   };
-  return <EChart option={option} height={height} />;
+  return (
+    <>
+      <EChart option={option} height={height} />
+      <ChartPager
+        page={page}
+        pageCount={pageCount}
+        total={categories.length}
+        pageSize={effectivePageSize}
+        onPageChange={setPage}
+      />
+    </>
+  );
 }
