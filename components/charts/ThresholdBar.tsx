@@ -4,7 +4,9 @@
  * Barres verticales avec ligne de seuil (OMS 90% / 95% / 5%).
  * Couleur adaptée selon la position vs seuil.
  */
+import { useEffect, useMemo, useState } from "react";
 import EChart from "./EChart";
+import ChartPager from "./ChartPager";
 import type * as echarts from "echarts/core";
 import { fmtUnit } from "@/lib/client/format";
 
@@ -16,6 +18,7 @@ interface Props {
   higherIsBetter?: boolean;
   unit?: string;
   height?: number;
+  pageSize?: number;
 }
 
 export default function ThresholdBar({
@@ -26,9 +29,26 @@ export default function ThresholdBar({
   higherIsBetter = true,
   unit = "%",
   height = 300,
+  pageSize = 12,
 }: Props) {
-  const displayCategories = categories.map(fmtUnit);
-  const data = values.map((v) => ({
+  const [page, setPage] = useState(0);
+  const effectivePageSize = pageSize > 0 ? pageSize : Math.max(1, categories.length);
+  const pageCount = Math.max(1, Math.ceil(categories.length / effectivePageSize));
+  useEffect(() => {
+    setPage((p) => Math.min(p, pageCount - 1));
+  }, [pageCount]);
+
+  const start = page * effectivePageSize;
+  const pageCategories = useMemo(
+    () => categories.slice(start, start + effectivePageSize),
+    [categories, start, effectivePageSize],
+  );
+  const pageValues = useMemo(
+    () => values.slice(start, start + effectivePageSize),
+    [values, start, effectivePageSize],
+  );
+  const displayCategories = pageCategories.map(fmtUnit);
+  const data = pageValues.map((v) => ({
     value: v,
     itemStyle: {
       color: higherIsBetter
@@ -86,5 +106,16 @@ export default function ThresholdBar({
       },
     ],
   };
-  return <EChart option={option} height={height} />;
+  return (
+    <>
+      <EChart option={option} height={height} />
+      <ChartPager
+        page={page}
+        pageCount={pageCount}
+        total={categories.length}
+        pageSize={effectivePageSize}
+        onPageChange={setPage}
+      />
+    </>
+  );
 }

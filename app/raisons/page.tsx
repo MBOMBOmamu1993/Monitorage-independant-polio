@@ -29,7 +29,7 @@ export default function RaisonsPage() {
   const refusalByUnit = reasonsLvl.polioRefusals;
   const absenceByUnit = reasonsLvl.absences;
   const channelsUnit = reasonsLvl.channels;
-  const infoRows = data.precomputed.parentInformedByLevel[level].slice(0, 20);
+  const infoRows = data.precomputed.parentInformedByLevel[level];
   const avgInfo = data.information.parentInformedPct;
 
   return (

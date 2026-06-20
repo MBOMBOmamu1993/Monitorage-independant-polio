@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import EChart from "./EChart";
+import ChartPager from "./ChartPager";
 import { fmtUnit } from "@/lib/client/format";
 
 export interface PercentSeries {
@@ -15,19 +17,37 @@ export default function PercentStackedBar({
   height = 360,
   showLabels = true,
   minLabelPct = 4,
+  pageSize = 12,
 }: {
   categories: string[];
   series: PercentSeries[];
   height?: number;
   showLabels?: boolean;
   minLabelPct?: number;
+  pageSize?: number;
 }) {
-  const displayCategories = categories.map(fmtUnit);
-  const totals = categories.map((_, idx) =>
-    series.reduce((sum, s) => sum + (s.data[idx] ?? 0), 0)
+  const [page, setPage] = useState(0);
+  const effectivePageSize = pageSize > 0 ? pageSize : Math.max(1, categories.length);
+  const pageCount = Math.max(1, Math.ceil(categories.length / effectivePageSize));
+  useEffect(() => {
+    setPage((p) => Math.min(p, pageCount - 1));
+  }, [pageCount]);
+
+  const start = page * effectivePageSize;
+  const pageCategories = useMemo(
+    () => categories.slice(start, start + effectivePageSize),
+    [categories, start, effectivePageSize],
+  );
+  const pageSeries = useMemo(
+    () => series.map((s) => ({ ...s, data: s.data.slice(start, start + effectivePageSize) })),
+    [series, start, effectivePageSize],
+  );
+  const displayCategories = pageCategories.map(fmtUnit);
+  const totals = pageCategories.map((_, idx) =>
+    pageSeries.reduce((sum, s) => sum + (s.data[idx] ?? 0), 0)
   );
 
-  const pctSeries = series.map((s) => ({
+  const pctSeries = pageSeries.map((s) => ({
     name: s.name,
     type: "bar" as const,
     stack: "total",
@@ -51,6 +71,7 @@ export default function PercentStackedBar({
   }));
 
   return (
+    <>
     <EChart
       height={height}
       option={{
@@ -74,7 +95,7 @@ export default function PercentStackedBar({
             const lines = params
               .filter((p) => p.value > 0)
               .map((p) => {
-                const abs = series.find((s) => s.name === p.seriesName)?.data[idx] ?? 0;
+                const abs = pageSeries.find((s) => s.name === p.seriesName)?.data[idx] ?? 0;
                 return `<div style="display:flex;align-items:center;gap:6px;">
                   <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.color}"></span>
                   <span style="flex:1">${p.seriesName}</span>
@@ -112,5 +133,13 @@ export default function PercentStackedBar({
         series: pctSeries,
       }}
     />
+    <ChartPager
+      page={page}
+      pageCount={pageCount}
+      total={categories.length}
+      pageSize={effectivePageSize}
+      onPageChange={setPage}
+    />
+    </>
   );
 }

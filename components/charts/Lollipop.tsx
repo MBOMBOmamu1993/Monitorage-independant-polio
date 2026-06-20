@@ -1,22 +1,39 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import EChart from "./EChart";
+import ChartPager from "./ChartPager";
 
 export default function Lollipop({
   items,
   valueFormat = (v: number) => v.toFixed(1) + "%",
   height = 320,
   threshold = 95,
+  pageSize = 12,
 }: {
   items: { label: string; value: number }[];
   valueFormat?: (v: number) => string;
   height?: number;
   threshold?: number;
+  pageSize?: number;
 }) {
-  const categories = items.map((i) => i.label);
-  const values = items.map((i) => i.value);
+  const [page, setPage] = useState(0);
+  const effectivePageSize = pageSize > 0 ? pageSize : Math.max(1, items.length);
+  const pageCount = Math.max(1, Math.ceil(items.length / effectivePageSize));
+  useEffect(() => {
+    setPage((p) => Math.min(p, pageCount - 1));
+  }, [pageCount]);
+
+  const start = page * effectivePageSize;
+  const pageItems = useMemo(
+    () => items.slice(start, start + effectivePageSize),
+    [items, start, effectivePageSize],
+  );
+  const categories = pageItems.map((i) => i.label);
+  const values = pageItems.map((i) => i.value);
 
   return (
+    <>
     <EChart
       height={height}
       option={{
@@ -77,5 +94,13 @@ export default function Lollipop({
         ],
       }}
     />
+    <ChartPager
+      page={page}
+      pageCount={pageCount}
+      total={items.length}
+      pageSize={effectivePageSize}
+      onPageChange={setPage}
+    />
+    </>
   );
 }

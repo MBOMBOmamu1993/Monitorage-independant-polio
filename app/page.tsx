@@ -53,8 +53,7 @@ export default function OverviewPage() {
   const unitsPolio = aggs
     .filter((a) => a.polioCoveragePct !== null)
     .map((a) => ({ label: labelOf(a, level), value: a.polioCoveragePct ?? 0 }))
-    .sort((a, b) => a.value - b.value)
-    .slice(0, 20);
+    .sort((a, b) => a.value - b.value);
 
   const topByVolume = [...aggs]
     .filter((r) => r.childrenPolioHousehold + r.childrenPolioOutside > 0)
@@ -63,8 +62,7 @@ export default function OverviewPage() {
         b.childrenPolioHousehold +
         b.childrenPolioOutside -
         (a.childrenPolioHousehold + a.childrenPolioOutside)
-    )
-    .slice(0, 12);
+    );
 
   return (
     <>
@@ -247,7 +245,7 @@ export default function OverviewPage() {
       </Card>
 
       {(() => {
-        const rows = data.precomputed.parentInformedByLevel[level].slice(0, 20);
+        const rows = data.precomputed.parentInformedByLevel[level];
         if (!rows.length) return null;
         return (
           <Card>
