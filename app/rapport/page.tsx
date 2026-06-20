@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useAnalytics } from "@/lib/client/api";
-import { useFilters, type FiltersState } from "@/lib/state/filters";
+import { matchesSelectedAntenne, selectedAntennes, useFilters, type FiltersState } from "@/lib/state/filters";
 import {
   pickAggregatesForLevel,
   resolveDrillLevel,
@@ -71,14 +71,14 @@ function buildReportInput(
   if (level === "as" && f.zs) {
     const byAs = data.aggregates.byAs.filter((a) => {
       if (f.province && a.orgUnit.province !== f.province) return false;
-      if (f.antenne && a.orgUnit.antenne !== f.antenne) return false;
+      if (!matchesSelectedAntenne(a.orgUnit.antenne, f)) return false;
       if (a.orgUnit.zs !== f.zs) return false;
       return true;
     });
     const locsByAs = new Map<string, typeof data.aggregates.byLocality>();
     data.aggregates.byLocality.forEach((l) => {
       if (f.province && l.orgUnit.province !== f.province) return;
-      if (f.antenne && l.orgUnit.antenne !== f.antenne) return;
+      if (!matchesSelectedAntenne(l.orgUnit.antenne, f)) return;
       if (l.orgUnit.zs !== f.zs) return;
       const key = l.orgUnit.as ?? "—";
       if (!locsByAs.has(key)) locsByAs.set(key, []);
@@ -103,6 +103,13 @@ function buildReportInput(
   // Determine drillLevel string for synth table selection: the pptx uses nested table when drillLevel === "zs"
   // (interpretation: user has selected a Zone de Santé, which means aggregates come at AS level).
   const drillLevelForReport: ReportInput["drillLevel"] = synthTableNested ? "zs" : level;
+  const synthTable = [...aggs]
+    .map((a) => ({
+      orgUnit: labelOf(a, level),
+      evaluatedPolio: a.childrenPolioHousehold + a.childrenPolioOutside,
+      polioNotVax: a.polioNotVaccinatedHousehold + a.polioNotVaccinatedOutside,
+    }))
+    .sort((x, y) => y.polioNotVax - x.polioNotVax || x.orgUnit.localeCompare(y.orgUnit, "fr"));
 
   // ── KPIs Polio (uniquement legacy Excel) ──────────────────────────────────
   const kpisPolio: LegacyBundle["kpisPolio"] = [
@@ -166,11 +173,7 @@ function buildReportInput(
     topNonVaxPolio: topNonVaxPolioHBars,
     polioReasons,
     polioRefusals,
-    synthTable: aggs.slice(0, 30).map((a) => ({
-      orgUnit: labelOf(a, level),
-      evaluatedPolio: a.childrenPolioHousehold + a.childrenPolioOutside,
-      polioNotVax: a.polioNotVaccinatedHousehold + a.polioNotVaccinatedOutside,
-    })),
+    synthTable,
     defis,
     recommandations,
     drillUnitSingular: drillUnitLabels(level).singular,
@@ -194,17 +197,20 @@ function buildPeriodLabel(minDate: string | null, maxDate: string | null): strin
 }
 
 function buildOrgUnitLabel(f: FiltersState): string {
+  const antennes = selectedAntennes(f);
   if (f.locality) return `Localité : ${f.locality}`;
   if (f.as) return `Aire de Santé : ${f.as}`;
   if (f.zs) return `Zone de Santé : ${f.zs}`;
-  if (f.antenne) return `Antenne PEV : ${f.antenne}`;
+  if (antennes.length === 1) return `Antenne PEV : ${antennes[0]}`;
+  if (antennes.length > 1) return `Antennes PEV : ${antennes.join(", ")}`;
   if (f.province) return `Province : ${f.province}`;
   return "Toutes les provinces";
 }
 
 /** Returns the org-unit NAME of the deepest selection (used for filename + page de garde). */
 function buildLevelName(f: FiltersState): string {
-  return f.locality ?? f.as ?? f.zs ?? f.antenne ?? f.province ?? "Toutes provinces";
+  const antennes = selectedAntennes(f);
+  return f.locality ?? f.as ?? f.zs ?? (antennes.length ? antennes.join(" + ") : null) ?? f.province ?? "Toutes provinces";
 }
 
 /** Returns a human label for the CURRENT selection level (not drill level).
@@ -213,7 +219,7 @@ function buildSelectionLevelLabel(f: FiltersState): string {
   if (f.locality) return "Localité";
   if (f.as) return "Aire de Santé";
   if (f.zs) return "Zone de Santé";
-  if (f.antenne) return "Antenne PEV";
+  if (selectedAntennes(f).length > 0) return "Antenne PEV";
   if (f.province) return "Province";
   return "National";
 }

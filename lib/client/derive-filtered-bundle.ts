@@ -24,6 +24,7 @@ import type {
   FactRow,
 } from "@/lib/types/domain";
 import type { FiltersState } from "@/lib/state/filters";
+import { matchesSelectedAntenne } from "@/lib/state/filters";
 import { RR_NON_VAX_REASONS, RR_REASON_COLORS } from "@/config/reasons";
 
 import { fmtUnit } from "./format";
@@ -54,7 +55,7 @@ function matches(r: FactRow, f: FiltersState): boolean {
   if (f.minDate && r.d < f.minDate) return false;
   if (f.maxDate && r.d > f.maxDate) return false;
   if (f.province && r.p !== f.province) return false;
-  if (f.antenne && r.a !== f.antenne) return false;
+  if (!matchesSelectedAntenne(r.a, f)) return false;
   if (f.zs && r.z !== f.zs) return false;
   if (f.as && r.as !== f.as) return false;
   if (f.locality && r.l !== f.locality) return false;

@@ -12,7 +12,7 @@
  *   + AS                    → "locality"
  *   + Localité              → "locality" (dernier niveau)
  */
-import type { FiltersState } from "@/lib/state/filters";
+import { matchesSelectedAntenne, selectedAntennes, type FiltersState } from "@/lib/state/filters";
 import type { AggregatesOrgUnit, AnalyticsBundle } from "@/lib/types/domain";
 import { fmtUnit } from "./format";
 
@@ -22,7 +22,7 @@ export function resolveDrillLevel(f: FiltersState): { level: DrillLevel; label: 
   if (f.locality) return { level: "locality", label: "Localité" };
   if (f.as) return { level: "locality", label: "Localité" };
   if (f.zs) return { level: "as", label: "Aire de Santé" };
-  if (f.antenne) return { level: "zs", label: "Zone de Santé" };
+  if (selectedAntennes(f).length > 0) return { level: "zs", label: "Zone de Santé" };
   if (f.province) return { level: "antenne", label: "Antenne PEV" };
   return { level: "province", label: "Province" };
 }
@@ -54,7 +54,7 @@ export function pickAggregatesForLevel(
 
   return src.filter((a) => {
     if (f.province && a.orgUnit.province !== f.province) return false;
-    if (f.antenne && a.orgUnit.antenne !== f.antenne) return false;
+    if (!matchesSelectedAntenne(a.orgUnit.antenne, f)) return false;
     if (f.zs && a.orgUnit.zs !== f.zs) return false;
     if (f.as && a.orgUnit.as !== f.as) return false;
     if (f.locality && a.orgUnit.locality !== f.locality) return false;
