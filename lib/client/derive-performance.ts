@@ -10,7 +10,7 @@
 "use client";
 
 import type { FactRow, PerformanceRow } from "@/lib/types/domain";
-import type { FiltersState } from "@/lib/state/filters";
+import { matchesSelectedAntenne, type FiltersState } from "@/lib/state/filters";
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import { expectedFormsPerDay, type MonitorProfile } from "@/config/completeness-rules";
 
@@ -18,7 +18,7 @@ function matchesForPerformance(r: FactRow, f: FiltersState): boolean {
   if (f.minDate && r.d < f.minDate) return false;
   if (f.maxDate && r.d > f.maxDate) return false;
   if (f.province && r.p !== f.province) return false;
-  if (f.antenne && r.a !== f.antenne) return false;
+  if (!matchesSelectedAntenne(r.a, f)) return false;
   if (f.zs && r.z !== f.zs) return false;
   if (f.as && r.as !== f.as) return false;
   if (f.locality && r.l !== f.locality) return false;

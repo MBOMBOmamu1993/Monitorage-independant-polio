@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAnalytics } from "@/lib/client/api";
-import { useFilters } from "@/lib/state/filters";
+import { selectedAntennes, useFilters } from "@/lib/state/filters";
 import { fmtUnit } from "@/lib/client/format";
 import { useCascadeOptions } from "@/lib/client/cascade-options";
 
@@ -68,6 +68,123 @@ function Field({
   );
 }
 
+function MultiField({
+  label,
+  values,
+  onChange,
+  options,
+  placeholder = "Tous",
+  disabled = false,
+  onReset,
+}: {
+  label: string;
+  values: string[];
+  onChange: (v: string[]) => void;
+  options: string[];
+  placeholder?: string;
+  disabled?: boolean;
+  onReset?: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+  const hasValue = values.length > 0;
+  const visibleOptions = useMemo(
+    () => Array.from(new Set([...values, ...options])).sort((a, b) => a.localeCompare(b)),
+    [values, options],
+  );
+  const display =
+    values.length === 0
+      ? placeholder
+      : values.length === 1
+      ? fmtUnit(values[0])
+      : `${values.length} antennes`;
+
+  useEffect(() => {
+    function handlePointerDown(event: PointerEvent) {
+      if (!ref.current || ref.current.contains(event.target as Node)) return;
+      setOpen(false);
+    }
+    if (!open) return;
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [open]);
+
+  function toggle(option: string) {
+    if (values.includes(option)) onChange(values.filter((v) => v !== option));
+    else onChange([...values, option]);
+  }
+
+  return (
+    <div
+      ref={ref}
+      className={
+        "group relative flex items-center rounded-md border bg-white h-8 pl-2 pr-1 transition " +
+        (hasValue
+          ? "border-oms-400 ring-1 ring-oms-100"
+          : "border-surface-200 hover:border-surface-300") +
+        (disabled ? " opacity-50 pointer-events-none" : "")
+      }
+    >
+      <span className="section-title whitespace-nowrap mr-2">{label}</span>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setOpen((v) => !v)}
+        className="flex-1 min-w-[6rem] max-w-[11rem] text-left bg-transparent text-[12px] text-surface-900 focus:outline-none cursor-pointer truncate"
+        title={values.length > 1 ? values.map(fmtUnit).join(", ") : undefined}
+      >
+        {display}
+      </button>
+      {hasValue && onReset ? (
+        <button
+          type="button"
+          onClick={() => {
+            onReset();
+            setOpen(false);
+          }}
+          title={`RÃ©initialiser ${label}`}
+          className="ml-1 w-4 h-4 shrink-0 flex items-center justify-center text-surface-500 hover:text-danger-600 text-[11px] leading-none"
+        >
+          Ã—
+        </button>
+      ) : (
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => setOpen((v) => !v)}
+          className="ml-1 w-4 h-4 shrink-0 flex items-center justify-center text-surface-400 text-[9px] leading-none"
+          aria-label={`Ouvrir ${label}`}
+        >
+          â–¾
+        </button>
+      )}
+
+      {open ? (
+        <div className="absolute left-0 top-[calc(100%+4px)] z-50 w-64 max-h-72 overflow-auto rounded-md border border-surface-200 bg-white shadow-lg py-1">
+          {visibleOptions.length ? (
+            visibleOptions.map((option) => (
+              <label
+                key={option}
+                className="flex items-center gap-2 px-3 py-1.5 text-[12px] text-surface-800 hover:bg-surface-50 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  className="h-3.5 w-3.5 accent-oms-500"
+                  checked={values.includes(option)}
+                  onChange={() => toggle(option)}
+                />
+                <span className="truncate">{fmtUnit(option)}</span>
+              </label>
+            ))
+          ) : (
+            <div className="px-3 py-2 text-[12px] text-surface-500">Aucune antenne</div>
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function DateField({
   label,
   value,
@@ -115,6 +232,10 @@ function DateField({
 export default function FilterBar() {
   const { data } = useAnalytics();
   const f = useFilters();
+  const selectedAntenneValues = useMemo(
+    () => selectedAntennes(f),
+    [f.antenne, f.antennes],
+  );
 
   // Cascade dynamique depuis la FactTable : pour chaque filtre, on calcule
   // les valeurs valides en appliquant TOUS les autres filtres actifs.
@@ -144,11 +265,15 @@ export default function FilterBar() {
   const zsList = useMemo(() => {
     if (cascade) return Array.from(cascade.zs).sort((a, b) => a.localeCompare(b));
     if (!fo) return [];
-    if (f.antenne) return fo.zsByAntenne[f.antenne] ?? [];
+    if (selectedAntenneValues.length) {
+      const all = new Set<string>();
+      for (const a of selectedAntenneValues) (fo.zsByAntenne[a] ?? []).forEach((z) => all.add(z));
+      return Array.from(all).sort((a, b) => a.localeCompare(b));
+    }
     const all = new Set<string>();
     for (const a of antennes) (fo.zsByAntenne[a] ?? []).forEach((z) => all.add(z));
     return Array.from(all).sort((a, b) => a.localeCompare(b));
-  }, [cascade, fo, f.antenne, antennes]);
+  }, [cascade, fo, selectedAntenneValues, antennes]);
 
   const asList = useMemo(() => {
     if (cascade) return Array.from(cascade.as).sort((a, b) => a.localeCompare(b));
@@ -210,7 +335,7 @@ export default function FilterBar() {
 
   const hasAnyFilter =
     !!f.province ||
-    !!f.antenne ||
+    selectedAntenneValues.length > 0 ||
     !!f.zs ||
     !!f.as ||
     !!f.locality ||
@@ -236,7 +361,14 @@ export default function FilterBar() {
     <div className="bg-white border-b border-surface-200 px-4 md:px-6 py-2.5">
       <div className="flex flex-wrap items-center gap-2">
         <Field label="Province" value={f.province} onChange={f.setProvince} options={provinces} onReset={() => f.setProvince(null)} />
-        <Field label="Antenne" value={f.antenne} onChange={f.setAntenne} options={antennes} disabled={antennes.length === 0} onReset={() => f.setAntenne(null)} />
+        <MultiField
+          label="Antenne"
+          values={selectedAntenneValues}
+          onChange={f.setAntennes}
+          options={antennes}
+          disabled={antennes.length === 0 && selectedAntenneValues.length === 0}
+          onReset={() => f.setAntennes([])}
+        />
         <Field label="ZS" value={f.zs} onChange={f.setZs} options={zsList} disabled={zsList.length === 0} onReset={() => f.setZs(null)} />
         <Field label="AS" value={f.as} onChange={f.setAs} options={asList} disabled={asList.length === 0} onReset={() => f.setAs(null)} />
         <Field label="Localité" value={f.locality} onChange={f.setLocality} options={localities} disabled={localities.length === 0} onReset={() => f.setLocality(null)} />

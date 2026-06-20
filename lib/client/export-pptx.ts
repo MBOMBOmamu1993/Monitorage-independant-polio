@@ -1004,13 +1004,25 @@ function addHeatLegend(slide: any, y: number) {
   });
 }
 
+const TABLE_X = 0.5;
+const TABLE_Y = 1.22;
+const TABLE_W = SLIDE_W - 1.0;
+const TABLE_LEGEND_Y = 6.32;
+const FLAT_TABLE_ROW_H = 0.34;
+const FLAT_TABLE_ROWS_PER_PAGE = 13;
+const NESTED_TABLE_ROW_H = 0.3;
+const NESTED_TABLE_ROWS_PER_PAGE = 14;
+
+function compareSynthRows<T extends { orgUnit: string; polioNotVax: number }>(a: T, b: T): number {
+  return b.polioNotVax - a.polioNotVax || a.orgUnit.localeCompare(b.orgUnit, "fr");
+}
+
 function addFlatSynthTable(
   pptx: any, startPage: number,
   rows: ReportInput["synthTable"],
   lvlLabel: string, lvlName: string,
 ): number {
   let page = startPage;
-  const ROWS_PER_PAGE = 14;
   if (!rows.length) {
     const slide = pptx.addSlide();
     addHeader(slide, "Tableau synthétique multi-niveaux", "Vue consolidée");
@@ -1022,20 +1034,28 @@ function addFlatSynthTable(
     return page;
   }
 
-  const maxPolio = Math.max(...rows.map((r) => r.polioNotVax), 1);
+  const orderedRows = [...rows].sort(compareSynthRows);
+  const maxPolio = Math.max(...orderedRows.map((r) => r.polioNotVax), 1);
 
   const chunks: typeof rows[] = [];
-  for (let i = 0; i < rows.length; i += ROWS_PER_PAGE) {
-    chunks.push(rows.slice(i, i + ROWS_PER_PAGE));
+  for (let i = 0; i < orderedRows.length; i += FLAT_TABLE_ROWS_PER_PAGE) {
+    chunks.push(orderedRows.slice(i, i + FLAT_TABLE_ROWS_PER_PAGE));
   }
 
   chunks.forEach((chunk, idx) => {
     const slide = pptx.addSlide();
+    const firstLine = idx * FLAT_TABLE_ROWS_PER_PAGE + 1;
+    const lastLine = firstLine + chunk.length - 1;
     const sub = chunks.length > 1
       ? `Page ${idx + 1}/${chunks.length} — Vue consolidée`
       : "Vue consolidée des unités";
     addHeader(slide, "Tableau synthétique multi-niveaux", sub);
     addFooter(slide, ++page, lvlLabel, lvlName);
+    slide.addText(`Lignes ${firstLine}-${lastLine} / ${orderedRows.length}`, {
+      x: TABLE_X, y: 1.04, w: TABLE_W, h: 0.18,
+      fontFace: FONT, fontSize: 8.5, color: MUTED,
+      align: "right", valign: "middle",
+    });
 
     const headerRow = headerCells([
       "Unité", "Évalués Polio", "Non vaccinés Polio",
@@ -1054,13 +1074,13 @@ function addFlatSynthTable(
     });
 
     slide.addTable([headerRow, ...dataRows], {
-      x: 0.5, y: 1.25, w: SLIDE_W - 1.0,
+      x: TABLE_X, y: TABLE_Y, w: TABLE_W,
       colW: [6.3, 3.0, 3.0],
-      rowH: 0.36,
+      rowH: FLAT_TABLE_ROW_H,
       border: { type: "solid", color: RULE, pt: 0.5 },
       autoPage: false,
     });
-    addHeatLegend(slide, 6.55);
+    addHeatLegend(slide, TABLE_LEGEND_Y);
   });
 
   return page;
@@ -1072,23 +1092,46 @@ type NestedRow =
   | { kind: "as"; as: string; evaluatedPolio: number; polio: number }
   | { kind: "loc"; locality: string; evaluatedPolio: number; polio: number };
 
-function flattenNested(groups: SynthASGroup[]): NestedRow[] {
-  const out: NestedRow[] = [];
+function paginateNestedGroups(groups: SynthASGroup[], rowsPerPage: number): NestedRow[][] {
+  const chunks: NestedRow[][] = [];
+  let current: NestedRow[] = [];
+
+  function pushCurrent() {
+    if (!current.length) return;
+    chunks.push(current);
+    current = [];
+  }
+
   groups.forEach((g) => {
-    out.push({
-      kind: "as", as: g.as,
+    const asRow: NestedRow = {
+      kind: "as",
+      as: g.as,
       evaluatedPolio: g.evaluatedPolio,
       polio: g.polioNotVax,
-    });
-    g.localities.forEach((l) => {
-      out.push({
-        kind: "loc", locality: l.locality,
+    };
+    const localities = [...g.localities].sort(
+      (a, b) => b.polioNotVax - a.polioNotVax || a.locality.localeCompare(b.locality, "fr"),
+    );
+
+    if (current.length && current.length + 1 > rowsPerPage) pushCurrent();
+    current.push(asRow);
+
+    localities.forEach((l) => {
+      if (current.length >= rowsPerPage) {
+        pushCurrent();
+        current.push(asRow);
+      }
+      current.push({
+        kind: "loc",
+        locality: l.locality,
         evaluatedPolio: l.evaluatedPolio,
         polio: l.polioNotVax,
       });
     });
   });
-  return out;
+
+  pushCurrent();
+  return chunks;
 }
 
 function addNestedSynthTable(
@@ -1109,15 +1152,13 @@ function addNestedSynthTable(
   }
 
   // Refs de coloration sur LOCALITÉS (pour un contraste utile)
-  const allLocalityPolio = groups.flatMap((g) => g.localities.map((l) => l.polioNotVax));
+  const orderedGroups = [...groups].sort(
+    (a, b) => b.polioNotVax - a.polioNotVax || a.as.localeCompare(b.as, "fr"),
+  );
+  const allLocalityPolio = orderedGroups.flatMap((g) => g.localities.map((l) => l.polioNotVax));
   const maxPolio = Math.max(...allLocalityPolio, 1);
 
-  const flat = flattenNested(groups);
-  const ROWS_PER_PAGE = 15;
-  const chunks: NestedRow[][] = [];
-  for (let i = 0; i < flat.length; i += ROWS_PER_PAGE) {
-    chunks.push(flat.slice(i, i + ROWS_PER_PAGE));
-  }
+  const chunks = paginateNestedGroups(orderedGroups, NESTED_TABLE_ROWS_PER_PAGE);
 
   chunks.forEach((chunk, idx) => {
     const slide = pptx.addSlide();
@@ -1155,13 +1196,13 @@ function addNestedSynthTable(
     });
 
     slide.addTable([headerRow, ...dataRows], {
-      x: 0.5, y: 1.25, w: SLIDE_W - 1.0,
+      x: TABLE_X, y: TABLE_Y, w: TABLE_W,
       colW: [2.8, 4.0, 2.75, 2.75],
-      rowH: 0.32,
+      rowH: NESTED_TABLE_ROW_H,
       border: { type: "solid", color: RULE, pt: 0.5 },
       autoPage: false,
     });
-    addHeatLegend(slide, 6.55);
+    addHeatLegend(slide, TABLE_LEGEND_Y);
   });
 
   return page;

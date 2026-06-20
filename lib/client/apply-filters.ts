@@ -6,7 +6,7 @@
  * on complète ici côté client le filtrage fin (Antenne/ZS/AS/Localité/…).
  */
 import type { AnalyticsBundle, CleanSubmission, ChildRecord } from "@/lib/types/domain";
-import type { FiltersState } from "@/lib/state/filters";
+import { matchesSelectedAntenne, type FiltersState } from "@/lib/state/filters";
 
 export interface FilteredView {
   submissions: CleanSubmission[];
@@ -24,7 +24,7 @@ export function applyFiltersToBundle(
   if (f.context === "outside") subs = subs.filter((s) => s.form === "outside");
 
   if (f.province) subs = subs.filter((s) => s.orgUnit.province === f.province);
-  if (f.antenne) subs = subs.filter((s) => s.orgUnit.antenne === f.antenne);
+  subs = subs.filter((s) => matchesSelectedAntenne(s.orgUnit.antenne, f));
   if (f.zs) subs = subs.filter((s) => s.orgUnit.zs === f.zs);
   if (f.as) subs = subs.filter((s) => s.orgUnit.as === f.as);
   if (f.locality) subs = subs.filter((s) => s.orgUnit.locality === f.locality);

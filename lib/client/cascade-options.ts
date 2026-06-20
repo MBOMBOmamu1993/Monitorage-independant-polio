@@ -15,13 +15,13 @@
 
 import { useDeferredValue, useMemo } from "react";
 import type { FactRow } from "@/lib/types/domain";
-import type { FiltersState } from "@/lib/state/filters";
+import { matchesSelectedAntenne, selectedAntennes, type FiltersState } from "@/lib/state/filters";
 
 // ─── Helpers de matching par groupe ──────────────────────────────────────────
 
 function matchGeo(r: FactRow, f: FiltersState): boolean {
   if (f.province && r.p !== f.province) return false;
-  if (f.antenne && r.a !== f.antenne) return false;
+  if (!matchesSelectedAntenne(r.a, f)) return false;
   if (f.zs && r.z !== f.zs) return false;
   if (f.as && r.as !== f.as) return false;
   if (f.locality && r.l !== f.locality) return false;
@@ -80,7 +80,7 @@ export interface CascadeOptions {
 function noFiltersActive(f: FiltersState): boolean {
   return (
     !f.province &&
-    !f.antenne &&
+    selectedAntennes(f).length === 0 &&
     !f.zs &&
     !f.as &&
     !f.locality &&
@@ -182,7 +182,7 @@ export function useCascadeOptions(
       }
       // Provinces : tout sauf le filtre province (mais avec antenne/ZS/AS/localité)
       const geoSansProvince =
-        (!fDeferred.antenne || r.a === fDeferred.antenne) &&
+        matchesSelectedAntenne(r.a, fDeferred) &&
         (!fDeferred.zs || r.z === fDeferred.zs) &&
         (!fDeferred.as || r.as === fDeferred.as) &&
         (!fDeferred.locality || r.l === fDeferred.locality);
@@ -201,7 +201,7 @@ export function useCascadeOptions(
       // ZS : tout sauf le filtre ZS
       const geoSansZs =
         (!fDeferred.province || r.p === fDeferred.province) &&
-        (!fDeferred.antenne || r.a === fDeferred.antenne) &&
+        matchesSelectedAntenne(r.a, fDeferred) &&
         (!fDeferred.as || r.as === fDeferred.as) &&
         (!fDeferred.locality || r.l === fDeferred.locality);
       if (geoSansZs && date && ctx && type && prof && mon && r.z) {
@@ -210,7 +210,7 @@ export function useCascadeOptions(
       // AS : tout sauf le filtre AS
       const geoSansAs =
         (!fDeferred.province || r.p === fDeferred.province) &&
-        (!fDeferred.antenne || r.a === fDeferred.antenne) &&
+        matchesSelectedAntenne(r.a, fDeferred) &&
         (!fDeferred.zs || r.z === fDeferred.zs) &&
         (!fDeferred.locality || r.l === fDeferred.locality);
       if (geoSansAs && date && ctx && type && prof && mon && r.as) {
@@ -219,7 +219,7 @@ export function useCascadeOptions(
       // Localités : tout sauf le filtre localité
       const geoSansLocality =
         (!fDeferred.province || r.p === fDeferred.province) &&
-        (!fDeferred.antenne || r.a === fDeferred.antenne) &&
+        matchesSelectedAntenne(r.a, fDeferred) &&
         (!fDeferred.zs || r.z === fDeferred.zs) &&
         (!fDeferred.as || r.as === fDeferred.as);
       if (geoSansLocality && date && ctx && type && prof && mon && r.l) {

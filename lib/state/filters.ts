@@ -6,7 +6,9 @@ export type MonitoringContextFilter = "all" | "households" | "outside";
 
 export interface FiltersState {
   province: string | null;
+  /** Backward-compatible single antenne value. Use antennes for new multi-select logic. */
   antenne: string | null;
+  antennes: string[];
   zs: string | null;
   as: string | null;
   locality: string | null;
@@ -22,6 +24,7 @@ export interface FiltersState {
 export interface FiltersActions {
   setProvince: (v: string | null) => void;
   setAntenne: (v: string | null) => void;
+  setAntennes: (v: string[]) => void;
   setZs: (v: string | null) => void;
   setAs: (v: string | null) => void;
   setLocality: (v: string | null) => void;
@@ -38,6 +41,7 @@ export interface FiltersActions {
 const INITIAL: FiltersState = {
   province: null,
   antenne: null,
+  antennes: [],
   zs: null,
   as: null,
   locality: null,
@@ -56,11 +60,23 @@ export const useFilters = create<FiltersState & FiltersActions>((set) => ({
     set(() => ({
       province: v,
       antenne: null,
+      antennes: [],
       zs: null,
       as: null,
       locality: null,
     })),
-  setAntenne: (v) => set(() => ({ antenne: v, zs: null, as: null, locality: null })),
+  setAntenne: (v) => set(() => ({ antenne: v, antennes: v ? [v] : [], zs: null, as: null, locality: null })),
+  setAntennes: (v) =>
+    set(() => {
+      const antennes = Array.from(new Set(v)).sort((a, b) => a.localeCompare(b));
+      return {
+        antennes,
+        antenne: antennes.length === 1 ? antennes[0] : null,
+        zs: null,
+        as: null,
+        locality: null,
+      };
+    }),
   setZs: (v) => set(() => ({ zs: v, as: null, locality: null })),
   setAs: (v) => set(() => ({ as: v, locality: null })),
   setLocality: (v) => set(() => ({ locality: v })),
@@ -73,6 +89,18 @@ export const useFilters = create<FiltersState & FiltersActions>((set) => ({
   reset: () => set(() => ({ ...INITIAL })),
   patch: (partial) => set((s) => ({ ...s, ...partial })),
 }));
+
+export function selectedAntennes(f: Pick<FiltersState, "antenne" | "antennes">): string[] {
+  return f.antennes.length ? f.antennes : f.antenne ? [f.antenne] : [];
+}
+
+export function matchesSelectedAntenne(
+  value: string | null | undefined,
+  f: Pick<FiltersState, "antenne" | "antennes">
+): boolean {
+  const selected = selectedAntennes(f);
+  return selected.length === 0 || (!!value && selected.includes(value));
+}
 
 export function filtersToQuery(f: FiltersState): string {
   const p = new URLSearchParams();
