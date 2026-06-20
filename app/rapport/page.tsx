@@ -68,6 +68,8 @@ function buildReportInput(
 
   // Build nested AS → Localités tree when drill level is "as" (i.e. filtered by ZS)
   let synthTableNested: SynthASGroup[] | undefined;
+  let synthNestedParentHeader: string | undefined;
+  let synthNestedChildHeader: string | undefined;
   if (level === "as" && f.zs) {
     const byAs = data.aggregates.byAs.filter((a) => {
       if (f.province && a.orgUnit.province !== f.province) return false;
@@ -98,6 +100,35 @@ function buildReportInput(
         localities: locs,
       };
     }).sort((x, y) => y.polioNotVax - x.polioNotVax);
+    synthNestedParentHeader = "Aire de Santé";
+    synthNestedChildHeader = "Localité";
+  } else if (level === "zs" && selectedAntennes(f).length > 1) {
+    // Plusieurs antennes sélectionnées → on regroupe les ZS par Antenne pour
+    // que le rapport présente bien TOUTES les ZS de CHAQUE antenne (et non la
+    // situation d'une seule), comme le fait le dashboard.
+    const zsByAntenne = new Map<string, typeof data.aggregates.byZs>();
+    data.aggregates.byZs.forEach((z) => {
+      if (f.province && z.orgUnit.province !== f.province) return;
+      if (!matchesSelectedAntenne(z.orgUnit.antenne, f)) return;
+      const key = z.orgUnit.antenne ?? "—";
+      if (!zsByAntenne.has(key)) zsByAntenne.set(key, []);
+      zsByAntenne.get(key)!.push(z);
+    });
+    synthTableNested = Array.from(zsByAntenne.entries()).map(([antenne, zsRows]) => {
+      const localities = zsRows.map((z) => ({
+        locality: fmtUnit(z.orgUnit.zs ?? "—"),
+        evaluatedPolio: z.childrenPolioHousehold + z.childrenPolioOutside,
+        polioNotVax: z.polioNotVaccinatedHousehold + z.polioNotVaccinatedOutside,
+      })).sort((x, y) => y.polioNotVax - x.polioNotVax);
+      return {
+        as: fmtUnit(antenne),
+        evaluatedPolio: zsRows.reduce((s, z) => s + z.childrenPolioHousehold + z.childrenPolioOutside, 0),
+        polioNotVax: zsRows.reduce((s, z) => s + z.polioNotVaccinatedHousehold + z.polioNotVaccinatedOutside, 0),
+        localities,
+      };
+    }).sort((x, y) => y.polioNotVax - x.polioNotVax);
+    synthNestedParentHeader = "Antenne PEV";
+    synthNestedChildHeader = "Zone de Santé";
   }
 
   // Determine drillLevel string for synth table selection: the pptx uses nested table when drillLevel === "zs"
@@ -154,6 +185,9 @@ function buildReportInput(
     levelName,
     drillLevel: drillLevelForReport,
     synthTableNested,
+    synthUnitHeader: drillUnitLabels(level).singular,
+    synthNestedParentHeader,
+    synthNestedChildHeader,
     kpisOverview: [
       { label: "Soumissions totales", value: fmtInt(kpi.submissions), tone: "brand", icon: "📋" },
       { label: "Enfants Polio évalués", value: fmtInt(kpi.childrenPolio), tone: "neutral", icon: "👶" },
