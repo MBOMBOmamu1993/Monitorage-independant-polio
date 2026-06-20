@@ -142,20 +142,20 @@ function MultiField({
             onReset();
             setOpen(false);
           }}
-          title={`RÃ©initialiser ${label}`}
-          className="ml-1 w-4 h-4 shrink-0 flex items-center justify-center text-surface-500 hover:text-danger-600 text-[0px] leading-none after:content-['x'] after:text-[11px]"
+          title={`Réinitialiser ${label}`}
+          className="ml-1 w-4 h-4 shrink-0 flex items-center justify-center text-surface-500 hover:text-danger-600 text-[11px] leading-none"
         >
-          Ã—
+          ×
         </button>
       ) : (
         <button
           type="button"
           disabled={disabled}
           onClick={() => setOpen((v) => !v)}
-          className="ml-1 w-4 h-4 shrink-0 flex items-center justify-center text-surface-400 text-[0px] leading-none after:content-['v'] after:text-[9px]"
+          className="ml-1 w-4 h-4 shrink-0 flex items-center justify-center text-surface-400 text-[9px] leading-none"
           aria-label={`Ouvrir ${label}`}
         >
-          â–¾
+          ▾
         </button>
       )}
 

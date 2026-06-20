@@ -104,8 +104,15 @@ export interface ReportInput {
     rrNotVax?: number;
   }[];
 
-  /** Tableau synth nesté AS → localités (uniquement ZS). */
+  /** Tableau synth nesté parent → enfants (AS → localités, ou Antenne → ZS). */
   synthTableNested?: SynthASGroup[];
+
+  /** Libellé dynamique de la colonne « entité » du tableau plat
+   * (ex. « Zone de Santé », « Antenne PEV », « Province »). */
+  synthUnitHeader?: string;
+  /** Libellés dynamiques des deux premières colonnes du tableau nesté. */
+  synthNestedParentHeader?: string;
+  synthNestedChildHeader?: string;
 
   /** Défis & recommandations générés par la page. */
   defis?: string[];
@@ -165,6 +172,9 @@ const C_CONF = "7FB8E8";
 const FONT = "Calibri";
 const SLIDE_W = 13.333;
 const SLIDE_H = 7.5;
+
+/** Titre du tableau synthétique final (flat ou nesté). */
+const SYNTH_TITLE = "Nombre des enfants non vaccinés par entité évaluée";
 
 /** Retourne les étiquettes (singulier/pluriel) pour le niveau des unités
  * effectivement affichées dans les hbars, stacks et tableau plat. Fallback
@@ -368,7 +378,7 @@ function addPlanSlide(slide: any, labels: { singular: string; plural: string }) 
     `Top ${labels.plural} · Non vaccination Polio`,
     "Raisons de non vaccination Polio",
     "Raisons de refus & absences Polio",
-    "Tableau synthétique multi-niveaux",
+    SYNTH_TITLE,
     "Défis identifiés",
     "Points d'action — Recommandations",
   ];
@@ -1021,11 +1031,12 @@ function addFlatSynthTable(
   pptx: any, startPage: number,
   rows: ReportInput["synthTable"],
   lvlLabel: string, lvlName: string,
+  unitHeader: string,
 ): number {
   let page = startPage;
   if (!rows.length) {
     const slide = pptx.addSlide();
-    addHeader(slide, "Tableau synthétique multi-niveaux", "Vue consolidée");
+    addHeader(slide, SYNTH_TITLE, "Vue consolidée");
     addFooter(slide, ++page, lvlLabel, lvlName);
     slide.addText("Aucune donnée disponible.", {
       x: 1.0, y: 3.0, w: SLIDE_W - 2.0, h: 1.0,
@@ -1049,7 +1060,7 @@ function addFlatSynthTable(
     const sub = chunks.length > 1
       ? `Page ${idx + 1}/${chunks.length} — Vue consolidée`
       : "Vue consolidée des unités";
-    addHeader(slide, "Tableau synthétique multi-niveaux", sub);
+    addHeader(slide, SYNTH_TITLE, sub);
     addFooter(slide, ++page, lvlLabel, lvlName);
     slide.addText(`Lignes ${firstLine}-${lastLine} / ${orderedRows.length}`, {
       x: TABLE_X, y: 1.04, w: TABLE_W, h: 0.18,
@@ -1058,7 +1069,7 @@ function addFlatSynthTable(
     });
 
     const headerRow = headerCells([
-      "Unité", "Évalués Polio", "Non vaccinés Polio",
+      unitHeader, "Évalués Polio", "Non vaccinés Polio",
     ]);
     const dataRows = chunk.map((r, i) => {
       const bg = i % 2 === 0 ? PAPER_TINT : PAPER;
@@ -1138,11 +1149,12 @@ function addNestedSynthTable(
   pptx: any, startPage: number,
   groups: SynthASGroup[],
   lvlLabel: string, lvlName: string,
+  parentHeader: string, childHeader: string,
 ): number {
   let page = startPage;
   if (!groups.length) {
     const slide = pptx.addSlide();
-    addHeader(slide, "Tableau synthétique multi-niveaux", "Vue consolidée");
+    addHeader(slide, SYNTH_TITLE, "Vue consolidée");
     addFooter(slide, ++page, lvlLabel, lvlName);
     slide.addText("Aucune donnée disponible.", {
       x: 1.0, y: 3.0, w: SLIDE_W - 2.0, h: 1.0,
@@ -1163,13 +1175,13 @@ function addNestedSynthTable(
   chunks.forEach((chunk, idx) => {
     const slide = pptx.addSlide();
     const sub = chunks.length > 1
-      ? `Page ${idx + 1}/${chunks.length} — Aires de Santé & localités`
-      : "Aires de Santé & localités";
-    addHeader(slide, "Tableau synthétique multi-niveaux", sub);
+      ? `Page ${idx + 1}/${chunks.length} — ${parentHeader} & ${childHeader}`
+      : `${parentHeader} & ${childHeader}`;
+    addHeader(slide, SYNTH_TITLE, sub);
     addFooter(slide, ++page, lvlLabel, lvlName);
 
     const headerRow = headerCells([
-      "Aire de Santé", "Localité", "Évalués Polio", "Non vaccinés Polio",
+      parentHeader, childHeader, "Évalués Polio", "Non vaccinés Polio",
     ]);
     let zebra = 0;
     const dataRows = chunk.map((r) => {
@@ -1177,7 +1189,7 @@ function addNestedSynthTable(
         zebra = 0;
         return [
           cell(fmtUnit(r.as), { fill: { color: BRAND_LIGHT }, bold: true, color: BRAND_DARK }),
-          cell("▸ Total AS", { fill: { color: BRAND_LIGHT }, bold: true, color: BRAND_DARK }),
+          cell(`▸ Total ${parentHeader}`, { fill: { color: BRAND_LIGHT }, bold: true, color: BRAND_DARK }),
           cell(fmt(r.evaluatedPolio), { fill: { color: BRAND_LIGHT }, bold: true, color: BRAND_DARK, align: "center" }),
           cell(fmt(r.polio), { fill: { color: BRAND_LIGHT }, bold: true, color: BRAND_DARK, align: "center" }),
         ];
@@ -1378,9 +1390,16 @@ export async function exportFullReportPPT(input: ReportInput): Promise<void> {
 
   // Slide 11+ — Tableau synth
   if (input.drillLevel === "zs" && input.synthTableNested && input.synthTableNested.length > 0) {
-    page = addNestedSynthTable(pptx, page, input.synthTableNested, lvlLabel, lvlName);
+    page = addNestedSynthTable(
+      pptx, page, input.synthTableNested, lvlLabel, lvlName,
+      input.synthNestedParentHeader ?? "Aire de Santé",
+      input.synthNestedChildHeader ?? "Localité",
+    );
   } else {
-    page = addFlatSynthTable(pptx, page, input.synthTable, lvlLabel, lvlName);
+    page = addFlatSynthTable(
+      pptx, page, input.synthTable, lvlLabel, lvlName,
+      input.synthUnitHeader ?? "Unité",
+    );
   }
 
   // Slide Défis
