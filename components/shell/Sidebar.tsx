@@ -7,7 +7,7 @@ import { cn } from "@/lib/client/cn";
 
 type IconName =
   | "home" | "droplet" | "syringe" | "alert"
-  | "map" | "virus" | "users" | "settings" | "download";
+  | "map" | "users" | "settings" | "download";
 
 function NavIcon({ name, className = "w-4 h-4" }: { name: IconName; className?: string }) {
   const common = {
@@ -23,7 +23,6 @@ function NavIcon({ name, className = "w-4 h-4" }: { name: IconName; className?: 
     syringe:  (<><path d="m14 3 7 7" /><path d="m10 7 7 7" /><path d="m3 21 9-9" /><path d="m6 18-2 2" /><path d="m15 10 4-4" /></>),
     alert:    (<><path d="M12 3 2 20h20L12 3Z" /><path d="M12 10v5" /><circle cx="12" cy="17.5" r=".6" fill="currentColor" /></>),
     map:      (<><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z" /><path d="M9 4v14" /><path d="M15 6v14" /></>),
-    virus:    (<><circle cx="12" cy="12" r="4" /><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.5 5.5l2 2M16.5 16.5l2 2M5.5 18.5l2-2M16.5 7.5l2-2" /></>),
     users:    (<><circle cx="9" cy="8" r="3" /><path d="M3 20c0-3 3-5 6-5s6 2 6 5" /><circle cx="17" cy="9" r="2.5" /><path d="M15 20c0-2 2-4 4-4s2 1 2 3" /></>),
     settings: (<><circle cx="12" cy="12" r="3" /><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.5 1.5M16.9 16.9l1.5 1.5M5.6 18.4l1.5-1.5M16.9 7.1l1.5-1.5" /></>),
     download: (<><path d="M12 3v12m0 0-4-4m4 4 4-4" /><path d="M5 19h14" /></>),
@@ -40,7 +39,6 @@ const NAV: { href: string; label: string; icon: IconName }[] = [
   { href: "/polio",        label: "Polio (nVPO2 + VPOb)",   icon: "droplet" },
   { href: "/raisons",      label: "Raisons & Refus",        icon: "alert" },
   { href: "/cartes",       label: "Cartographie",           icon: "map" },
-  { href: "/surveillance", label: "Surveillance épidémio.", icon: "virus" },
   { href: "/performance",  label: "Performance moniteurs",  icon: "users" },
   { href: "/admin",        label: "Admin & Données brutes", icon: "settings" },
   { href: "/rapport",      label: "Télécharger le rapport", icon: "download" },
