@@ -1,14 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
 import { useAnalytics } from "@/lib/client/api";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Grid } from "@/components/ui/Grid";
 import { KpiCard } from "@/components/ui/KpiCard";
-import { EmptyState, LoadingState } from "@/components/ui/EmptyState";
+import { LoadingState } from "@/components/ui/EmptyState";
 import RankingTable from "@/components/ui/RankingTable";
-import BarStacked from "@/components/charts/BarStacked";
 import { fmtInt, fmtUnit } from "@/lib/client/format";
 import { useFilters } from "@/lib/state/filters";
 import { resolveDrillLevel } from "@/lib/client/drill-level";
@@ -35,13 +33,10 @@ export default function SurveillancePage() {
 
   const stats = rows.reduce(
     (acc, r) => ({
-      pfa: acc.pfa + r.numberAFP,
       submissions: acc.submissions + r.submissions,
     }),
-    { pfa: 0, submissions: 0 }
+    { submissions: 0 }
   );
-
-  const topPFA = [...rows].sort((a, b) => b.numberAFP - a.numberAFP).slice(0, 15);
 
   const unitLabel = level === "province" ? "Province" :
                    level === "antenne" ? "Antenne" :
@@ -63,19 +58,12 @@ export default function SurveillancePage() {
       )}
       <PageHeader
         title="Surveillance communautaire"
-        subtitle={`Cas notifiés par les moniteurs lors du porte-à-porte (formulaire Ménage) · ${
+        subtitle={`Suivi des ménages visités lors du porte-à-porte (formulaire Ménage) · ${
           filters.province ? filters.province : "Toutes provinces"
         }${filters.minDate ? ` · Depuis le ${filters.minDate}` : ""}`}
       />
 
       <Grid cols={2} className="mb-6">
-        <KpiCard
-          label="Cas PFA notifiés"
-          value={fmtInt(stats.pfa)}
-          sub="Enfants 0–15 ans ne marchant plus"
-          tone={stats.pfa > 0 ? "warn" : "neutral"}
-          icon="🦠"
-        />
         <KpiCard
           label="Ménages visités"
           value={fmtInt(stats.submissions)}
@@ -85,51 +73,20 @@ export default function SurveillancePage() {
         />
       </Grid>
 
-      <div className="mb-6">
-        <Card>
-          <CardHeader
-            title={`Top ${unitLabel} — Cas PFA`}
-            subtitle="Enfants 0–15 ans ne marchant plus"
-          />
-          {topPFA.some(r => r.numberAFP > 0) ? (
-            <BarStacked
-              horizontal
-              categories={topPFA.filter(r => r.numberAFP > 0).map(getLabel)}
-              series={[
-                {
-                  name: "Cas notifiés",
-                  data: topPFA.filter(r => r.numberAFP > 0).map(r => r.numberAFP),
-                  color: "#f29e0b",
-                }
-              ]}
-            />
-          ) : (
-            <EmptyState title="Aucun cas PFA notifié" />
-          )}
-        </Card>
-      </div>
-
       <Card>
         <CardHeader
           title="Détails par unité organisationnelle"
-          subtitle="Cas notifiés par niveau géographique"
+          subtitle="Ménages visités par niveau géographique"
         />
         <RankingTable
           rows={rows}
-          defaultSort={{ key: "pfa", dir: "desc" }}
+          defaultSort={{ key: "submissions", dir: "desc" }}
           columns={[
             {
               key: "unit",
               label: unitLabel,
               render: (r) => getLabel(r),
               sortBy: (r) => getLabel(r),
-            },
-            {
-              key: "pfa",
-              label: "Cas PFA",
-              align: "right",
-              render: (r) => fmtInt(r.numberAFP),
-              sortBy: (r) => r.numberAFP,
             },
             {
               key: "submissions",
