@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<style>
+  body { font-family: "Calibri", "Arial", sans-serif; color: #1a1a1a; font-size: 11pt; margin: 24px; }
+  h1 { font-size: 17pt; color: #0b4ea2; margin-bottom: 2px; }
+  h2 { font-size: 13pt; color: #0b4ea2; border-bottom: 2px solid #0b4ea2; padding-bottom: 3px; margin-top: 22px; }
+  .sub { color: #555; font-size: 10pt; margin-top: 0; }
+  table { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 10.5pt; }
+  th, td { border: 1px solid #b8b8b8; padding: 5px 8px; }
+  th { background: #0b4ea2; color: #fff; text-align: left; }
+  td.num, th.num { text-align: right; }
+  tr:nth-child(even) td { background: #f2f6fb; }
+  tr.total td { font-weight: bold; background: #dce9f7; }
+  .note { font-size: 9.5pt; color: #555; font-style: italic; }
+  .small { font-size: 9pt; color: #777; }
+</style>
+</head>
+<body>
+
+<h1>Monitorage indépendant Polio — RDC</h1>
+<p class="sub">Analyse comparative des soumissions ODK — Campagne <b>Avril 2026</b> (23–30/04) vs Campagne <b>Mai 2026</b> (23/05–10/06)</p>
+
+<h2>1. Mobilisation des ressources locales — soumissions par formulaire</h2>
+<table>
+  <tr><th>Type de formulaire</th><th class="num">ID ODK</th><th class="num">Avril 2026</th><th class="num">Mai 2026</th></tr>
+  <tr><td>Supervision des équipes de vaccination</td><td class="num">4497</td><td class="num">63 801</td><td class="num">42 938</td></tr>
+  <tr><td>Formulaire A pour VPOb</td><td class="num">14850</td><td class="num">1 766</td><td class="num">552</td></tr>
+  <tr><td>Formulaire A pour nVPO2</td><td class="num">5645</td><td class="num">2 497</td><td class="num">852</td></tr>
+  <tr><td>Inventaire des MCF (chaîne de froid)</td><td class="num">9442</td><td class="num">1 943</td><td class="num">1 540</td></tr>
+  <tr><td>Liste de contrôle des formations AVS</td><td class="num">5278</td><td class="num">860</td><td class="num">367</td></tr>
+  <tr><td>Liste de vérification validation des préparatifs AVS</td><td class="num">4501</td><td class="num">993</td><td class="num">848</td></tr>
+  <tr><td>Monitorage indépendant dans les ménages</td><td class="num">4498</td><td class="num">18 133</td><td class="num">12 147</td></tr>
+  <tr class="total"><td>Total</td><td class="num">—</td><td class="num">89 993</td><td class="num">59 244</td></tr>
+</table>
+
+<h2>2. Profil d'acteur (niveau / désignation du superviseur)</h2>
+<p class="note">Aucun champ littéral « profil » n'existe dans les formulaires. Le profil d'acteur est porté par le champ
+<b>Designation_Supervisor</b> (form. 5278) ou <b>Monitored_Level</b> (form. 4497, 4501, 4498). Les Formulaires A
+(14850, 5645) et l'Inventaire MCF (9442) ne contiennent pas de profil d'acteur (uniquement un niveau administratif de rapportage).</p>
+<table>
+  <tr><th>Profil d'acteur</th><th class="num">Avril 2026</th><th class="num">Mai 2026</th></tr>
+  <tr><td>Superviseurs nationaux</td><td class="num">175</td><td class="num">304</td></tr>
+  <tr><td>Superviseurs provinciaux</td><td class="num">2 238</td><td class="num">1 352</td></tr>
+  <tr><td>Superviseurs d'axes (district)</td><td class="num">5 053</td><td class="num">3 886</td></tr>
+  <tr><td>Superviseurs d'équipes</td><td class="num">67 774</td><td class="num">43 978</td></tr>
+  <tr><td>Moniteurs indépendants</td><td class="num">7 012</td><td class="num">5 009</td></tr>
+  <tr><td>Consultants (OMS, UNICEF, CDC, BMGF, IQVIA, AFENET, ONG, Croix-Rouge, stoppeurs…)</td><td class="num">1 317</td><td class="num">1 587</td></tr>
+  <tr><td>Autres profils (non précisés)</td><td class="num">218</td><td class="num">181</td></tr>
+  <tr class="total"><td>Total renseigné</td><td class="num">83 787</td><td class="num">56 297</td></tr>
+</table>
+
+<h2>3. Distribution brute des codes de désignation</h2>
+<p class="note">Données brutes ODK (avant regroupement en catégories du § 2), pour transparence et vérification.</p>
+<table>
+  <tr><th>Code ODK</th><th class="num">Avril 2026</th><th class="num">Mai 2026</th></tr>
+  <tr><td>team_sup (superviseur d'équipe)</td><td class="num">67 615</td><td class="num">43 916</td></tr>
+  <tr><td>Team_supervisor</td><td class="num">159</td><td class="num">62</td></tr>
+  <tr><td>Indp_Monitor (moniteur indépendant)</td><td class="num">7 012</td><td class="num">5 009</td></tr>
+  <tr><td>District_sup (superviseur d'axe)</td><td class="num">5 036</td><td class="num">3 876</td></tr>
+  <tr><td>subdistrict_sup</td><td class="num">17</td><td class="num">10</td></tr>
+  <tr><td>region_supervi (superviseur provincial)</td><td class="num">2 238</td><td class="num">1 352</td></tr>
+  <tr><td>national_super (superviseur national)</td><td class="num">175</td><td class="num">304</td></tr>
+  <tr><td>WHO_Staff</td><td class="num">655</td><td class="num">818</td></tr>
+  <tr><td>IQVIA</td><td class="num">203</td><td class="num">329</td></tr>
+  <tr><td>AFINET / AFNET</td><td class="num">92</td><td class="num">131</td></tr>
+  <tr><td>Stopper</td><td class="num">199</td><td class="num">142</td></tr>
+  <tr><td>Others</td><td class="num">218</td><td class="num">181</td></tr>
+  <tr><td>UN_other</td><td class="num">36</td><td class="num">73</td></tr>
+  <tr><td>UNICEF_Staff</td><td class="num">36</td><td class="num">41</td></tr>
+  <tr><td>AFR_Staf</td><td class="num">28</td><td class="num">5</td></tr>
+  <tr><td>Red Cross Officers</td><td class="num">25</td><td class="num">1</td></tr>
+  <tr><td>BMGF_Staff</td><td class="num">11</td><td class="num">12</td></tr>
+  <tr><td>CDC_Staff</td><td class="num">10</td><td class="num">9</td></tr>
+  <tr><td>Oth_NGO</td><td class="num">3</td><td class="num">12</td></tr>
+  <tr><td>McKing / ESR_Staff / Rotary / AfriCDC / APW_Staff / wcr_Staff / USAID</td><td class="num">19</td><td class="num">14</td></tr>
+</table>
+
+<p class="small">Source : API ODK/ONA whonghub.org (projet omsdrc/851) — formulaires 4497, 14850, 5645, 9442, 5278, 4501, 4498.
+Fenêtres : Avril 23–30/04/2026 ; Mai 23/05–10/06/2026. Données extraites le 04/06/2026 (la fenêtre de mai est encore
+en cours, les chiffres de mai sont donc partiels à cette date). Document généré automatiquement.</p>
+
+</body>
+</html>
