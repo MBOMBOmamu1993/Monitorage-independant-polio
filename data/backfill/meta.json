@@ -3,7 +3,7 @@
   "households": {
     "latestSubmissionTime": "2026-08-16T16:45:07.911114+00:00",
     "count": 76876,
-    "lastUpdated": "2026-08-16T17:49:14.268Z",
+    "lastUpdated": "2026-08-16T18:02:12.748Z",
     "files": [
       "2026-05-23.json",
       "2026-05-24.json",
@@ -82,9 +82,9 @@
     ]
   },
   "outside": {
-    "latestSubmissionTime": "2026-08-16T17:48:51.519421+00:00",
-    "count": 49871,
-    "lastUpdated": "2026-08-16T17:49:16.634Z",
+    "latestSubmissionTime": "2026-08-16T18:01:06.686247+00:00",
+    "count": 49879,
+    "lastUpdated": "2026-08-16T18:02:14.660Z",
     "files": [
       "2026-05-23.json",
       "2026-05-24.json",
